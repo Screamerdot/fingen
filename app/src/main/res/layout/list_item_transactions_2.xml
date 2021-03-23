@@ -107,7 +107,7 @@
         app:layout_constraintEnd_toStartOf="@+id/textViewAmount"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/flipViewIcon"
-        app:layout_constraintTop_toBottomOf="@+id/layoutTagView"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAccountBalance"
         tools:text="Account" />
 
     <TextView
@@ -183,6 +183,14 @@
         app:layout_constraintBottom_toBottomOf="@+id/textViewDate"
         app:layout_constraintEnd_toStartOf="@+id/textViewDate"
         app:layout_constraintTop_toTopOf="@+id/textViewDate">
+
+        <ImageView
+            android:id="@+id/imageViewHasDebt"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_debt_blue"
+            tools:ignore="ContentDescription" />
+
 
         <ImageView
             android:id="@+id/imageViewHasProducts"

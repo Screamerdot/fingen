@@ -86,6 +86,40 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/buttonAddBalanceMarkerLayout"
+        style="@style/FabMenuButtonChildLayout"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/fabMenuButtonRootLayout"
+        app:layout_constraintEnd_toEndOf="@+id/fabMenuButtonRootLayout"
+        app:layout_constraintTop_toTopOf="@+id/fabMenuButtonRootLayout">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ent_balance" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/buttonAddBalanceMarker"
+            style="@style/FabMenuButtonChild"
+            app:srcCompat="@drawable/ic_balance_white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonAddLocationMarkerLayout"
+        style="@style/FabMenuButtonChildLayout"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/fabMenuButtonRootLayout"
+        app:layout_constraintEnd_toEndOf="@+id/fabMenuButtonRootLayout"
+        app:layout_constraintTop_toTopOf="@+id/fabMenuButtonRootLayout">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ent_location" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/buttonAddLocationMarker"
+            style="@style/FabMenuButtonChild"
+            app:srcCompat="@drawable/ic_location_gray" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/buttonAddIgnoreMarkerLayout"
         style="@style/FabMenuButtonChildLayout"
         android:visibility="gone"

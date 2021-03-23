@@ -5,42 +5,61 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:activity="com.yoshione.fingen.ActivityBackup">
+    android:visibility="visible"
+    tools:activity="com.yoshione.fingen.ActivityBackup"
+    tools:visibility="visible">
 
-    <include
-        android:id="@+id/include2"
-        layout="@layout/common_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <EditText
+        android:id="@+id/editTextDaysNumberSync"
+        android:layout_width="87dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="32dp"
+        android:ems="10"
+        android:inputType="numberSigned"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textViewAutoBackupInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_margin"
-        android:text="@string/ttl_auto_backup_info"
-        app:layout_constraintTop_toBottomOf="@id/include2">
-    </TextView>
-
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout6"
+        tools:text="7" />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/switchCompatEnablePasswordProtection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_margin"
         android:text="@string/ttl_enable_backup_password_protection"
-        app:layout_constraintTop_toBottomOf="@id/textViewAutoBackupInfo"/>
+        app:layout_constraintTop_toBottomOf="@id/textViewAutoBackupInfo" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout6"
+        android:layout_width="115dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="2"
+        android:hint="@string/ent_time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDropboxAccount"
+        tools:visibility="visible">
+
+        <EditText
+            android:id="@+id/textEditSyncTime"
+            style="@style/NotEditableEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:onClick="onTimeClick"
+            tools:layout_editor_absoluteX="208dp"
+            tools:layout_editor_absoluteY="308dp"
+            tools:text="01:00"
+            tools:visibility="visible" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayoutPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_margin"
-        app:passwordToggleEnabled="false"
+        android:hint="@string/ent_password"
         app:layout_constraintTop_toBottomOf="@id/switchCompatEnablePasswordProtection"
-        android:hint="@string/ent_password">
+        app:passwordToggleEnabled="false">
 
         <EditText
             android:id="@+id/editTextPassword"
@@ -58,9 +77,18 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textInputLayoutPassword"
         android:layout_margin="@dimen/activity_margin"
-        app:passwordToggleEnabled="false"
+        android:hint="@string/ttl_dropbox_account"
         app:layout_constraintTop_toBottomOf="@id/textInputLayoutPassword"
-        android:hint="@string/ttl_dropbox_account">
+        app:passwordToggleEnabled="false">
+
+        <Button
+            android:id="@+id/buttonLogoutFromDropbox"
+            style="@android:style/Widget.Material.Button.Borderless"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/act_logout_from_dropbox"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/editTextDropboxAccount"
@@ -76,20 +104,41 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             tools:text="TextView" />
-
-        <Button
-            android:id="@+id/buttonLogoutFromDropbox"
-            style="@android:style/Widget.Material.Button.Borderless"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/act_logout_from_dropbox"
-            android:visibility="gone" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/textViewSyncDaysInfo"
+        android:layout_width="262dp"
+        android:layout_height="41dp"
+        android:layout_margin="@dimen/activity_margin"
+        android:layout_marginStart="8dp"
+        android:text="@string/ttl_sync_days_info"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewSyncInfo"></TextView>
+
+    <TextView
+        android:id="@+id/textViewSyncInfo"
+        android:layout_width="280dp"
+        android:layout_height="41dp"
+        android:layout_margin="@dimen/activity_margin"
+        android:layout_marginStart="8dp"
+        android:text="@string/ttl_sync_info"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayoutDropboxAccount"
+        tools:visibility="visible"></TextView>
+
+    <TextView
+        android:id="@+id/textViewAutoBackupInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_margin"
+        android:text="@string/ttl_auto_backup_info"
+        app:layout_constraintTop_toBottomOf="@id/include2"></TextView>
 
     <View
         android:id="@+id/fabBGLayout"
         style="@style/FabMenuBackground" />
+
 
     <LinearLayout
         android:id="@+id/fabBackupToOriginDBLayout"
@@ -169,9 +218,9 @@
 
     <LinearLayout
         android:id="@+id/fabMenuButtonRootLayout"
+        style="@style/FabMenuRootButtonLayout"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        style="@style/FabMenuRootButtonLayout">
+        app:layout_constraintEnd_toEndOf="parent">
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -183,5 +232,14 @@
             app:fabSize="normal"
             app:srcCompat="@drawable/ic_backup_and_restore_white" />
     </LinearLayout>
+
+    <include
+        android:id="@+id/include2"
+        layout="@layout/common_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
