@@ -15,11 +15,13 @@ import androidx.preference.PreferenceManager;
 import com.yoshione.fingen.FgConst;
 import com.yoshione.fingen.dao.AccountsDAO;
 import com.yoshione.fingen.dao.CabbagesDAO;
+import com.yoshione.fingen.dao.LocationsDAO;
 import com.yoshione.fingen.dao.PayeesDAO;
 import com.yoshione.fingen.FragmentSmsMarkerEdit;
 import com.yoshione.fingen.interfaces.IAbstractModel;
 import com.yoshione.fingen.model.Account;
 import com.yoshione.fingen.model.Cabbage;
+import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.model.Payee;
 import com.yoshione.fingen.model.SmsMarker;
 import com.yoshione.fingen.model.Transaction;
@@ -37,9 +39,9 @@ import java.util.List;
 public class SmsMarkerManager {
 
     private static final int[] mTypesTransaction = {SmsParser.MARKER_TYPE_ACCOUNT, SmsParser.MARKER_TYPE_CABBAGE,
-            SmsParser.MARKER_TYPE_TRTYPE, SmsParser.MARKER_TYPE_PAYEE, SmsParser.MARKER_TYPE_IGNORE};
+            SmsParser.MARKER_TYPE_TRTYPE, SmsParser.MARKER_TYPE_PAYEE, SmsParser.MARKER_TYPE_LOCATION, SmsParser.MARKER_TYPE_BALANCE, SmsParser.MARKER_TYPE_IGNORE};
     private static final int[] mTypesTransfer = {SmsParser.MARKER_TYPE_ACCOUNT, SmsParser.MARKER_TYPE_CABBAGE,
-            SmsParser.MARKER_TYPE_TRTYPE, SmsParser.MARKER_TYPE_DESTACCOUNT, SmsParser.MARKER_TYPE_IGNORE};
+            SmsParser.MARKER_TYPE_TRTYPE, SmsParser.MARKER_TYPE_DESTACCOUNT, SmsParser.MARKER_TYPE_LOCATION, SmsParser.MARKER_TYPE_BALANCE, SmsParser.MARKER_TYPE_IGNORE};
 
     public static void showEditdialog(SmsMarker smsMarker, FragmentManager fragmentManager,
                                FragmentSmsMarkerEdit.IDialogDismissListener dialogDismissListener, Context context) {
@@ -92,6 +94,14 @@ public class SmsMarkerManager {
                     e.printStackTrace();
                 }
                 break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                LocationsDAO locationsDAO = LocationsDAO.getInstance(context);
+                try {
+                    smsMarker.setObject(String.valueOf(locationsDAO.getModelByName(text).getID()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             case SmsParser.MARKER_TYPE_TRTYPE:
                 TrType trType = new TrType(text, context);
                 smsMarker.setObject(String.valueOf(trType.mType));
@@ -119,6 +129,10 @@ public class SmsMarkerManager {
                 PayeesDAO payeesDAO = PayeesDAO.getInstance(context);
                 text = payeesDAO.getModelById(getObjectIdFromString(object)).toString();
                 break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                LocationsDAO locationsDAO = LocationsDAO.getInstance(context);
+                text = locationsDAO.getModelById(getObjectIdFromString(object)).toString();
+                break;
             case SmsParser.MARKER_TYPE_TRTYPE:
                 text = new TrType(getObjectIdFromString(object), context).toString();
                 break;
@@ -143,6 +157,9 @@ public class SmsMarkerManager {
             case SmsParser.MARKER_TYPE_PAYEE:
                 PayeesDAO payeesDAO = PayeesDAO.getInstance(context);
                 return payeesDAO.getModelById(getObjectIdFromString(objectID));
+            case SmsParser.MARKER_TYPE_LOCATION:
+                LocationsDAO locationsDAO = LocationsDAO.getInstance(context);
+                return locationsDAO.getModelById(getObjectIdFromString(objectID));
             default:
                 return null;
         }
@@ -175,6 +192,14 @@ public class SmsMarkerManager {
                     objects = payeesDAO.getAllModels();
                 } catch (Exception e) {
                     objects = new ArrayList<Payee>();
+                }
+                break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                LocationsDAO locationsDAO = LocationsDAO.getInstance(context);
+                try {
+                    objects = locationsDAO.getAllModels();
+                } catch (Exception e) {
+                    objects = new ArrayList<Location>();
                 }
                 break;
             case SmsParser.MARKER_TYPE_TRTYPE:
@@ -245,8 +270,12 @@ public class SmsMarkerManager {
                 return res.getString(R.string.ent_type);
             case SmsParser.MARKER_TYPE_PAYEE:
                 return res.getString(R.string.ent_payee_or_payer);
+            case SmsParser.MARKER_TYPE_LOCATION:
+                return res.getString(R.string.ent_location);
             case SmsParser.MARKER_TYPE_IGNORE:
                 return res.getString(R.string.ent_skip);
+            case SmsParser.MARKER_TYPE_BALANCE:
+                return res.getString(R.string.ent_balance);
             case SmsParser.MARKER_TYPE_DESTACCOUNT:
                 return res.getString(R.string.ent_dest_account);
             default:
@@ -316,6 +345,9 @@ public class SmsMarkerManager {
                 break;
             case SmsParser.MARKER_TYPE_PAYEE:
                 object = PayeesDAO.getInstance(context).getPayeeByID(Long.valueOf(marker.getObject())).getName();
+                break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                object = LocationsDAO.getInstance(context).getLocationByID(Long.valueOf(marker.getObject())).getName();
                 break;
             case SmsParser.MARKER_TYPE_IGNORE:
                 break;
