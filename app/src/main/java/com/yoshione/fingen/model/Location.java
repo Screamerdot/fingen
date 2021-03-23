@@ -14,6 +14,7 @@ public class Location extends BaseModel implements IAbstractModel {
     private String mAddress;
     private Double mLon;
     private Double mLat;
+    private Integer mRadius;
     private long mParentID;
     private int mOrderNum;
     private boolean mExpanded;
@@ -24,6 +25,7 @@ public class Location extends BaseModel implements IAbstractModel {
         this.mAddress = "";
         this.mLon = 0d;
         this.mLat = 0d;
+        this.mRadius = 0;
         mParentID = -1;
         mExpanded = true;
     }
@@ -32,12 +34,13 @@ public class Location extends BaseModel implements IAbstractModel {
         super(id);
     }
 
-    public Location(long id, String name, String address, Double lon, Double lat, long parentID, int orderNum, boolean expanded) {
+    public Location(long id, String name, String address, Integer radius, Double lon, Double lat, long parentID, int orderNum, boolean expanded) {
         setID(id);
         mName = name;
         mAddress = address;
         mLon = lon;
         mLat = lat;
+        mRadius = radius;
         mParentID = parentID;
         mOrderNum = orderNum;
         mExpanded = expanded;
@@ -83,6 +86,10 @@ public class Location extends BaseModel implements IAbstractModel {
         this.mName = mName;
     }
 
+    public void setRadius(Integer mRadius) {
+        this.mRadius = mRadius;
+    }
+
     public Double getLon() {
         return mLon;
     }
@@ -97,6 +104,10 @@ public class Location extends BaseModel implements IAbstractModel {
 
     public void setLat(Double mLat) {
         this.mLat = mLat;
+    }
+
+    public Integer getRadius() {
+        return mRadius;
     }
 
     @Override
@@ -126,6 +137,7 @@ public class Location extends BaseModel implements IAbstractModel {
         values.put(LocationsDAO.COL_ADDRESS, getAddress());
         values.put(LocationsDAO.COL_LAT, getLat());
         values.put(LocationsDAO.COL_LON, getLon());
+        values.put(LocationsDAO.COL_RADIUS, getRadius());
         values.put(LocationsDAO.COL_PARENT_ID, mParentID);
         values.put(LocationsDAO.COL_ORDER_NUMBER, getOrderNum());
         return values;
@@ -141,6 +153,7 @@ public class Location extends BaseModel implements IAbstractModel {
         super.writeToParcel(dest, flags);
         dest.writeString(this.mName);
         dest.writeString(this.mAddress);
+        dest.writeValue(this.mRadius);
         dest.writeValue(this.mLon);
         dest.writeValue(this.mLat);
         dest.writeLong(this.mParentID);
@@ -152,6 +165,7 @@ public class Location extends BaseModel implements IAbstractModel {
         super(in);
         this.mName = in.readString();
         this.mAddress = in.readString();
+        this.mRadius = (Integer) in.readValue(Integer.class.getClassLoader());
         this.mLon = (Double) in.readValue(Double.class.getClassLoader());
         this.mLat = (Double) in.readValue(Double.class.getClassLoader());
         this.mParentID = in.readLong();

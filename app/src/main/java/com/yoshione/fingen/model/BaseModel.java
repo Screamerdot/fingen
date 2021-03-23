@@ -36,6 +36,8 @@ public class BaseModel implements Parcelable, IAbstractModel {
     private boolean mSelected;
     private BigDecimal mIncome;
     private BigDecimal mExpense;
+    private Double mLon;
+    private Double mLat;
     protected int mSortType = SORT_BY_NAME;
     protected String TAG = getClass().getName();
 
@@ -50,6 +52,8 @@ public class BaseModel implements Parcelable, IAbstractModel {
         mFullName = "";
         mIncome = BigDecimal.ZERO;
         mExpense = BigDecimal.ZERO;
+        mLon = 0d;
+        mLat = 0d;
     }
 
     public BaseModel(long id) {
@@ -145,6 +149,14 @@ public class BaseModel implements Parcelable, IAbstractModel {
         return mIncome;
     }
 
+    public Double getLon() {
+        return mLon;
+    }
+
+    public Double getLat() {
+        return mLat;
+    }
+
     public void setIncome(BigDecimal income) {
         mIncome = income;
     }
@@ -197,6 +209,9 @@ public class BaseModel implements Parcelable, IAbstractModel {
         }
         if (getClass().equals(SimpleDebt.class)) {
             return IAbstractModel.MODEL_TYPE_SIMPLEDEBT;
+        }
+        if (getClass().equals(PushSender.class)) {
+            return IAbstractModel.MODEL_TYPE_PUSH_SENDER;
         }
         if (getClass().equals(Sender.class)) {
             return IAbstractModel.MODEL_TYPE_SENDER;
@@ -252,6 +267,9 @@ public class BaseModel implements Parcelable, IAbstractModel {
             case MODEL_TYPE_SIMPLEDEBT:
                 name = "SIMPLEDEBT";
                 break;
+            case MODEL_TYPE_PUSH_SENDER:
+                name = "PUSH_SENDER";
+                break;
             case MODEL_TYPE_SENDER:
                 name = "SENDER";
                 break;
@@ -298,6 +316,9 @@ public class BaseModel implements Parcelable, IAbstractModel {
         }
         if (modelType == IAbstractModel.MODEL_TYPE_SMSMARKER) {
             return new SmsMarker();
+        }
+        if (modelType == IAbstractModel.MODEL_TYPE_PUSH_SENDER) {
+            return new PushSender();
         }
         if (modelType == IAbstractModel.MODEL_TYPE_SENDER) {
             return new Sender();

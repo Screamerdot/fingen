@@ -36,6 +36,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
     private long mPayeeID;
     private long mCategoryID;
     private BigDecimal mAmount;
+    private BigDecimal mBankFee;
     private BigDecimal mFromAccountBalance;
     private BigDecimal mToAccountBalance;
     private long mProjectID;
@@ -67,6 +68,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         this.mPayeeID = -1;
         this.mCategoryID = -1;
         this.mAmount = BigDecimal.ZERO;
+        this.mBankFee = BigDecimal.ZERO;
         this.mFromAccountBalance = BigDecimal.ZERO;
         this.mToAccountBalance = BigDecimal.ZERO;
         this.mExchangeRate = BigDecimal.ONE;
@@ -97,6 +99,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         mPayeeID = src.getPayeeID();
         mCategoryID = src.getCategoryID();
         mAmount = src.getAmount().abs();
+        mBankFee = src.getBankFee().abs();
         mFromAccountBalance = src.getFromAccountBalance();
         mToAccountBalance = src.getToAccountBalance();
         mExchangeRate = new BigDecimal(src.getExchangeRate().doubleValue());
@@ -133,6 +136,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         this.mPayeeID = in.readLong();
         this.mCategoryID = in.readLong();
         this.mAmount = (BigDecimal) in.readSerializable();
+        this.mBankFee = (BigDecimal) in.readSerializable();
         this.mFromAccountBalance = (BigDecimal) in.readSerializable();
         this.mToAccountBalance = (BigDecimal) in.readSerializable();
         this.mProjectID = in.readLong();
@@ -217,7 +221,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         this.mAccuracy = mAccuracy;
     }
 
-    public double getLat() {
+    public Double getLat() {
         return mLat;
     }
 
@@ -225,7 +229,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         this.mLat = mLat;
     }
 
-    public double getLon() {
+    public Double getLon() {
         return mLon;
     }
 
@@ -263,6 +267,14 @@ public class Transaction extends BaseModel implements IAbstractModel {
 
     public void setPayeeID(long mPayeeID) {
         this.mPayeeID = mPayeeID;
+    }
+
+    public BigDecimal getBankFee() {
+        return mBankFee;
+    }
+
+    public void setBankFee(BigDecimal mBankFee) {
+        this.mBankFee = mBankFee.abs();
     }
 
     public BigDecimal getAmount() {
@@ -310,6 +322,11 @@ public class Transaction extends BaseModel implements IAbstractModel {
     public boolean hasLocation() {
         return mLocationID >= 0 || (mLat + mLon) != 0;
     }
+
+    public boolean hasDebt() {
+        return mSimpleDebtID >= 0;
+    }
+
 
     public String getComment() {
         if (mComment != null) {
@@ -423,6 +440,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         values.put(TransactionsDAO.COL_PAYEE, getPayeeID());
         values.put(TransactionsDAO.COL_CATEGORY, getCategoryID());
         values.put(TransactionsDAO.COL_AMOUNT, getAmount().doubleValue());
+        values.put(TransactionsDAO.COL_BANKFEE, getBankFee().doubleValue());
         values.put(TransactionsDAO.COL_EXCHANGE_RATE, getExchangeRate().doubleValue());
         values.put(TransactionsDAO.COL_PROJECT, getProjectID());
         values.put(TransactionsDAO.COL_SIMPLE_DEBT, getSimpleDebtID());
@@ -498,6 +516,7 @@ public class Transaction extends BaseModel implements IAbstractModel {
         dest.writeLong(this.mPayeeID);
         dest.writeLong(this.mCategoryID);
         dest.writeSerializable(this.mAmount);
+        dest.writeSerializable(this.mBankFee);
         dest.writeSerializable(this.mFromAccountBalance);
         dest.writeSerializable(this.mToAccountBalance);
         dest.writeLong(this.mProjectID);
