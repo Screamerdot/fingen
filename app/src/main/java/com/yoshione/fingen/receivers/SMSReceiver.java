@@ -11,9 +11,6 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.telephony.SmsMessage;
 
-import androidx.core.content.ContextCompat;
-import androidx.preference.PreferenceManager;
-
 import com.yoshione.fingen.ActivityEditTransaction;
 import com.yoshione.fingen.ActivityMain;
 import com.yoshione.fingen.BuildConfig;
@@ -39,6 +36,9 @@ import com.yoshione.fingen.utils.SmsParser;
 
 import java.math.BigDecimal;
 import java.util.Date;
+
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 /**
  * Created by slv on 29.10.2015.
@@ -74,11 +74,11 @@ public class SMSReceiver extends BroadcastReceiver {
                 sLastSmsTime = System.currentTimeMillis();
             }
 
-            if (BuildConfig.DEBUG) {
+/*            if (BuildConfig.DEBUG) {
                 if (address != null && address.equals("123456789")) {
                     address = "mtbank";
                 }
-            }
+            }*/
 
             Sender sender = SendersDAO.getInstance(context).getSenderByPhoneNo(address);
 
@@ -89,6 +89,30 @@ public class SMSReceiver extends BroadcastReceiver {
         }
     }
 
+    private static SmsMessage[] getMessagesFromIntent(Intent intent) {
+        Object[] messages = (Object[]) intent.getSerializableExtra("pdus");
+        if (messages != null) {
+            byte[][] pduObjs = new byte[messages.length][];
+
+            for (int i = 0; i < messages.length; i++) {
+                pduObjs[i] = (byte[]) messages[i];
+            }
+
+            byte[][] pdus = new byte[pduObjs.length][];
+            int pduCount = pdus.length;
+            SmsMessage[] msgs = new SmsMessage[pduCount];
+
+            for (int i = 0; i < pduCount; i++) {
+                pdus[i] = pduObjs[i];
+                msgs[i] = SmsMessage.createFromPdu(pdus[i]);
+            }
+
+            return msgs;
+        } else {
+            return null;
+        }
+    }
+
     public void parseSMS(Context context, Sms sms) {
         SmsParser smsParser = new SmsParser(sms, context);
         if (smsParser.goodToParse()) {
@@ -96,7 +120,8 @@ public class SMSReceiver extends BroadcastReceiver {
                 Transaction transaction = smsParser.extractTransaction();
                 if (TransactionManager.isValidToSmsAutocreate(transaction, context)) {
                     TransactionsDAO transactionsDAO = TransactionsDAO.getInstance(context);
-                    transaction.setComment(sms.getmBody());
+//                    transaction.setComment(sms.getmBody());
+                    transaction.setFile(sms.getmBody());
                     transaction.setAutoCreated(true);
                     try {
                         transaction = (Transaction) transactionsDAO.createModel(transaction);
@@ -189,7 +214,7 @@ public class SMSReceiver extends BroadcastReceiver {
                                 .setAutoCancel(true)
                                 .setStyle(new Notification.BigTextStyle().bigText(s))
                                 .setContentTitle(res.getString(R.string.notif_create_correcting_transaction_caption))// Заголовок уведомления
-                                /*.setContentText(s)*/; // Текст уведомления
+                        /*.setContentText(s)*/; // Текст уведомления
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             builder.setColor(ContextCompat.getColor(context, R.color.ColorMain));
@@ -220,30 +245,6 @@ public class SMSReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
             }
-        }
-    }
-
-    private static SmsMessage[] getMessagesFromIntent(Intent intent) {
-        Object[] messages = (Object[]) intent.getSerializableExtra("pdus");
-        if (messages != null) {
-            byte[][] pduObjs = new byte[messages.length][];
-
-            for (int i = 0; i < messages.length; i++) {
-                pduObjs[i] = (byte[]) messages[i];
-            }
-
-            byte[][] pdus = new byte[pduObjs.length][];
-            int pduCount = pdus.length;
-            SmsMessage[] msgs = new SmsMessage[pduCount];
-
-            for (int i = 0; i < pduCount; i++) {
-                pdus[i] = pduObjs[i];
-                msgs[i] = SmsMessage.createFromPdu(pdus[i]);
-            }
-
-            return msgs;
-        } else {
-            return null;
         }
     }
 
