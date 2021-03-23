@@ -24,6 +24,7 @@ import com.yoshione.fingen.model.Events;
 import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.model.Payee;
 import com.yoshione.fingen.model.Project;
+import com.yoshione.fingen.model.PushSender;
 import com.yoshione.fingen.model.Sender;
 import com.yoshione.fingen.model.SimpleDebt;
 import com.yoshione.fingen.model.Sms;
@@ -130,6 +131,8 @@ public class BaseDAO implements AbstractDAO {
                 return SimpleDebtsDAO.getInstance(context);
             case IAbstractModel.MODEL_TYPE_SENDER:
                 return SendersDAO.getInstance(context);
+            case IAbstractModel.MODEL_TYPE_PUSH_SENDER:
+                return PushSendersDAO.getInstance(context);
             case IAbstractModel.MODEL_TYPE_BUDGET:
                 return BudgetDAO.getInstance(context);
             case IAbstractModel.MODEL_TYPE_BUDGET_DEBT:
@@ -154,6 +157,7 @@ public class BaseDAO implements AbstractDAO {
         if (aClass.equals(Template.class)) return TemplatesDAO.getInstance(context);
         if (aClass.equals(Department.class)) return DepartmentsDAO.getInstance(context);
         if (aClass.equals(SimpleDebt.class)) return SimpleDebtsDAO.getInstance(context);
+        if (aClass.equals(PushSender.class)) return PushSendersDAO.getInstance(context);
         if (aClass.equals(Sender.class)) return SendersDAO.getInstance(context);
         if (aClass.equals(BudgetDAO.class)) return BudgetDAO.getInstance(context);
         if (aClass.equals(BudgetCreditsDAO.class)) return BudgetCreditsDAO.getInstance(context);

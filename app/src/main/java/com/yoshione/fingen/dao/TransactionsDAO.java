@@ -3,6 +3,7 @@ package com.yoshione.fingen.dao;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +14,8 @@ import androidx.collection.LongSparseArray;
 
 import com.yoshione.fingen.BuildConfig;
 import com.yoshione.fingen.DBHelper;
+import com.yoshione.fingen.FGApplication;
+import com.yoshione.fingen.FgConst;
 import com.yoshione.fingen.classes.ListSumsByCabbage;
 import com.yoshione.fingen.classes.SumsByCabbage;
 import com.yoshione.fingen.db.DbUtil;
@@ -42,6 +45,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import androidx.preference.PreferenceManager;
 import io.reactivex.Single;
 
 public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInheritor {
@@ -54,6 +58,7 @@ public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInherit
     public static final String COL_PAYEE = "Payee";
     public static final String COL_CATEGORY = "Category";
     public static final String COL_AMOUNT = "Amount";
+    public static final String COL_BANKFEE = "BankFee";
     public static final String COL_PROJECT = "Project";
     public static final String COL_SIMPLE_DEBT = "SimpleDebt";
     public static final String COL_DEPARTMENT = "Department";
@@ -73,7 +78,7 @@ public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInherit
     
     public static final String[] ALL_COLUMNS = joinArrays(COMMON_COLUMNS, new String[]{
             COL_DATE_TIME, COL_SRC_ACCOUNT, COL_PAYEE,
-            COL_CATEGORY, COL_AMOUNT, COL_PROJECT,
+            COL_CATEGORY, COL_AMOUNT, COL_BANKFEE, COL_PROJECT,
             COL_SIMPLE_DEBT, COL_DEPARTMENT, COL_LOCATION,
             COL_COMMENT, COL_FILE, COL_DEST_ACCOUNT,
             COL_EXCHANGE_RATE, COL_AUTO_CREATED, COL_LON,
@@ -88,6 +93,7 @@ public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInherit
             + COL_PAYEE +           " INTEGER REFERENCES [" + PayeesDAO.TABLE + "]([" + COL_ID + "]) ON DELETE SET NULL ON UPDATE CASCADE, "
             + COL_CATEGORY +        " INTEGER REFERENCES [" + CategoriesDAO.TABLE + "]([" + COL_ID + "]) ON DELETE SET NULL ON UPDATE CASCADE, "
             + COL_AMOUNT +          " REAL NOT NULL, "
+            + COL_BANKFEE +          " REAL DEFAULT 0, "
             + COL_PROJECT +         " INTEGER REFERENCES [" + ProjectsDAO.TABLE + "]([" + COL_ID + "]) ON DELETE SET NULL ON UPDATE CASCADE, "
             + COL_SIMPLE_DEBT +     " INTEGER REFERENCES [" + SimpleDebtsDAO.TABLE + "]([" + COL_ID + "]) ON DELETE SET NULL ON UPDATE CASCADE, "
             + COL_DEPARTMENT +      " INTEGER REFERENCES [" + DepartmentsDAO.TABLE + "]([" + COL_ID + "]) ON DELETE SET NULL ON UPDATE CASCADE, "
@@ -153,6 +159,7 @@ public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInherit
         transaction.setFile(DbUtil.getString(cursor, COL_FILE));
         transaction.setDestAccountID(DbUtil.getLong(cursor, COL_DEST_ACCOUNT));
         transaction.setExchangeRate(new BigDecimal(DbUtil.getDouble(cursor, COL_EXCHANGE_RATE)));
+        transaction.setBankFee(new BigDecimal(DbUtil.getDouble(cursor, COL_BANKFEE)));
         transaction.setAutoCreated(DbUtil.getBoolean(cursor, COL_AUTO_CREATED));
         transaction.setLat(DbUtil.getDouble(cursor, COL_LAT));
         transaction.setLon(DbUtil.getDouble(cursor, COL_LON));
@@ -434,6 +441,60 @@ public class TransactionsDAO extends BaseDAO implements AbstractDAO, IDaoInherit
         }
         return transactions;
     }
+
+    public List<Transaction> getTransactionsByDepartmentDate(Context context) {
+/*************************/
+        Calendar c = Calendar.getInstance(LocaleUtils.getLocale(context));
+        c.setTime(new Date());
+        c.set(Calendar.HOUR_OF_DAY, 23); //anything 0 - 23
+        c.set(Calendar.MINUTE, 59);
+        c.set(Calendar.SECOND, 59);
+        c.set(Calendar.MILLISECOND, 999);
+        Date end = c.getTime();
+        c.set(Calendar.HOUR_OF_DAY, 0); //anything 0 - 23
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+//        Date start = c.getTime() - 604800000;
+//        Context context = FGApplication.getContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String currentString = prefs.getString("days_number_sync", "14");
+        Integer i = 0 - Integer.parseInt(currentString);
+        c.add(Calendar.DAY_OF_YEAR, i);
+        Date start = c.getTime();
+        String select = String.format(
+                "%s = '%s' AND\n" +
+                        "%s > '%s' AND \n" +
+                        "%s < '%s' AND \n" +
+                        "Deleted = 0",
+                COL_DEPARTMENT, PreferenceManager.getDefaultSharedPreferences(context).getString(FgConst.PREF_DEFAULT_DEPARTMENT, "-1"),
+                COL_DATE_TIME, String.valueOf(start.getTime()),
+                COL_DATE_TIME, String.valueOf(end.getTime()));
+
+//        Log.d(TAG, select);
+
+        Cursor cursor = mDatabase.query(TABLE, null,
+                select, null,
+                null, null, null);
+
+        List<Transaction> transactions = new ArrayList<>();
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    while (!cursor.isAfterLast()) {
+                        transactions.add(cursorToTransaction(cursor));
+                        cursor.moveToNext();
+                    }
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        return transactions;
+    }
+
+    /***************/
+
 
     @Override
     public List<?> getAllModels() {

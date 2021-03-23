@@ -72,6 +72,7 @@ public class LocationsDAO extends BaseDAO implements AbstractDAO, IDaoInheritor 
         location.setFullName(DbUtil.getString(cursor, COL_FULL_NAME));
         location.setParentID(DbUtil.getLong(cursor, COL_PARENT_ID));
         location.setAddress(DbUtil.getString(cursor, COL_ADDRESS));
+        location.setRadius(DbUtil.getInt(cursor, COL_RADIUS));
         location.setLat(DbUtil.getDouble(cursor, COL_LAT));
         location.setLon(DbUtil.getDouble(cursor, COL_LON));
         location.setOrderNum(DbUtil.getInt(cursor, COL_ORDER_NUMBER));
@@ -98,6 +99,17 @@ public class LocationsDAO extends BaseDAO implements AbstractDAO, IDaoInheritor 
 
     public Location getLocationByID(long id) {
         return (Location) getModelById(id);
+    }
+
+    public long getLocationIDByName(String name) {
+        List<Location> locationsList = getAllLocations();
+        long locID = -1;
+        for (int i = 0; i < locationsList.size(); i++) {
+            if (locationsList.get(i).getName().equals(name)) {
+                locID = locationsList.get(i).getID();
+            }
+        }
+        return locID;
     }
 
     @Override
