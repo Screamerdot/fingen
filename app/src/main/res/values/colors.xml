@@ -36,10 +36,12 @@
     <color name="ColorAccount">#B8CF0C</color>
     <color name="ColorCabbage">#80C8D1</color>
     <color name="ColorType">#F9D168</color>
-    <color name="ColorPayee">#ED7053</color>
+    <color name="ColorPayee">#9FA5F5</color>
+    <color name="ColorLocation">#ED7053</color>
     <color name="ColorDestAccount">#26a69a</color>
     <color name="ColorSign">#9e9d24</color>
     <color name="ColorAmount">#FFC68C</color>
+    <color name="ColorBalance">#8CFFB6</color>
 
     <!--Calculator-->
 

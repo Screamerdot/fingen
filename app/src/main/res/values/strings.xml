@@ -878,6 +878,10 @@
     <string name="ent_skip" formatted="false">Skip</string>
 
     <!-- 10. SMS Markers -->
+    <!-- Entities -->
+    <string name="ent_balance" formatted="false">Balance</string>
+
+    <!-- 10. SMS Markers -->
     <!-- Actions -->
     <string name="act_set_marker" formatted="false">Set marker</string>
 
@@ -1052,6 +1056,22 @@
     <!-- 12. SMS -->
     <!-- Messages -->
     <string name="msg_permission_recieve_sms_rationale" formatted="false">SMS markers or senders were created, but message receiving is not allowed. Click Next and allow work with messaging.</string>
+
+    <!-- 12. SMS -->
+    <!-- Messages -->
+    <string name="msg_permission_read_push_rationale" formatted="false">"Read notifications" permission nedded to import Push. Click Next, and allow access to messages data.</string>
+
+    <!-- 12. SMS -->
+    <!-- Messages -->
+    <string name="msg_permission_read_push_denied" formatted="false">Access notifications permission was denied</string>
+
+    <!-- 12. SMS -->
+    <!-- Messages -->
+    <string name="msg_permission_read_push_never_askagain" formatted="false">Access notifications permission was denied</string>
+
+    <!-- 12. SMS -->
+    <!-- Messages -->
+    <string name="msg_permission_recieve_push_rationale" formatted="false">Push senders were created, but notification receiving is not allowed. Click Next and allow work with push.</string>
 
     <!-- 12. SMS -->
     <!-- Errors -->
@@ -1256,6 +1276,14 @@
     <!-- 16. Backup & Restore -->
     <!-- Titles -->
     <string name="ttl_auto_backup_info" formatted="false">Backups are created automatically and stored to the memory card in Fingen/\Backup</string>
+
+    <!-- 16. Backup & Restore -->
+    <!-- Titles -->
+    <string name="ttl_sync_info" formatted="false">Set daily sync start time:</string>
+
+    <!-- 16. Backup & Restore -->
+    <!-- Titles -->
+    <string name="ttl_sync_days_info" formatted="false">Set number of days for sync:</string>
 
     <!-- 16. Backup & Restore -->
     <!-- Messages -->
@@ -1841,13 +1869,29 @@
     <!-- Messages -->
     <string name="msg_thanks_for_purchase_reports" formatted="false">Thank you for your purchase! To build graphical reports, go to the "Transactions" tab, pull up the bottom panel and click Charting. Reports are based on the transactions displayed in the list, taking into account all of the filters.</string>
 
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_push_sender" formatted="false">Push sender</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_push_senders" formatted="false">Push senders</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_new_push_sender" formatted="false">New Push sender</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_edit_push_sender" formatted="false">Edit Push sender</string>
+
     <!-- 24. Senders -->
     <!-- Entities -->
     <string name="ent_sender" formatted="false">SMS sender</string>
 
     <!-- 24. Senders -->
     <!-- Entities -->
-    <string name="ent_senders" formatted="false">SMS senders</string>
+    <string name="ent_senders" formatted="false">SMS/Push senders</string>
 
     <!-- 24. Senders -->
     <!-- Entities -->
@@ -2140,4 +2184,5 @@
     <!-- 28. EditorConstructor -->
     <!-- Actions -->
     <string name="act_tune_editor" formatted="false">Tune the editor</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
