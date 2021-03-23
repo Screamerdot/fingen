@@ -196,6 +196,7 @@ public class FileUtils {
         ArrayList<File> inFiles = new ArrayList<>();
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+//            File[] files = context.getExternalFilesDirs(parentDir.toString());
             File[] files = parentDir.listFiles();
             for (File file : files) {
                 if (file.isDirectory()) {
