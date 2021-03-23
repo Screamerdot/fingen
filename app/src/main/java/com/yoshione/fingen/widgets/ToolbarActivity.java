@@ -21,8 +21,12 @@ import com.yoshione.fingen.ActivityMain;
 import com.yoshione.fingen.BuildConfig;
 import com.yoshione.fingen.FGApplication;
 import com.yoshione.fingen.R;
+import com.yoshione.fingen.backup.BackupJob;
+import com.yoshione.fingen.backup.RestoreJob;
 import com.yoshione.fingen.interfaces.IUnsubscribeOnDestroy;
 import com.yoshione.fingen.utils.ViewServer;
+
+import java.util.Calendar;
 
 import javax.inject.Inject;
 
@@ -30,6 +34,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+
+import static java.util.Calendar.HOUR_OF_DAY;
+import static java.util.Calendar.MINUTE;
 
 /**
  * Created by slv on 18.11.2015.
@@ -177,7 +184,10 @@ public abstract class ToolbarActivity extends PinCompatActivity implements IUnsu
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_change_theme:
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                Calendar cal = Calendar.getInstance();
+                BackupJob.schedule(Long.valueOf(Integer.toString(cal.get(HOUR_OF_DAY))), Long.valueOf(Integer.toString(cal.get(MINUTE))));
+                RestoreJob.schedule(Long.valueOf(Integer.toString(cal.get(HOUR_OF_DAY))), Long.valueOf(Integer.toString(cal.get(MINUTE) + 1)));
+/*                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
                 int theme = Integer.valueOf(preferences.getString("theme", "0"));
                 switch (theme) {
                     case ActivityMain.THEME_LIGHT:
@@ -188,7 +198,7 @@ public abstract class ToolbarActivity extends PinCompatActivity implements IUnsu
                         break;
                 }
                 preferences.edit().putString("theme", String.valueOf(theme)).apply();
-                recreate();
+                recreate();*/
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
