@@ -1,6 +1,7 @@
 package com.yoshione.fingen.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
@@ -18,17 +19,20 @@ import androidx.core.view.MotionEventCompat;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.yoshione.fingen.FGApplication;
 import com.yoshione.fingen.FgConst;
 import com.yoshione.fingen.R;
 import com.yoshione.fingen.adapter.helper.ItemTouchHelperAdapter;
 import com.yoshione.fingen.adapter.helper.OnStartDragListener;
 import com.yoshione.fingen.dao.AbstractDAO;
 import com.yoshione.fingen.dao.BaseDAO;
+import com.yoshione.fingen.dao.LocationsDAO;
 import com.yoshione.fingen.interfaces.IAbstractModel;
 import com.yoshione.fingen.interfaces.IAdapterEventsListener;
 import com.yoshione.fingen.interfaces.IOrderable;
 import com.yoshione.fingen.interfaces.IUpdateTreeListsEvents;
 import com.yoshione.fingen.model.Cabbage;
+import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.utils.BaseNode;
 import com.yoshione.fingen.utils.IconGenerator;
 import com.yoshione.fingen.utils.ScreenUtils;
@@ -190,10 +194,18 @@ public class AdapterTreeModel extends RecyclerView.Adapter implements ItemTouchH
         });
 
         p = (ViewGroup.MarginLayoutParams) vh.textViewModelName.getLayoutParams();
-        if (model.getModelType() == IAbstractModel.MODEL_TYPE_CATEGORY | model.getModelType() == IAbstractModel.MODEL_TYPE_PROJECT | model.getModelType() == IAbstractModel.MODEL_TYPE_DEPARTMENT) {
+        if (model.getModelType() == IAbstractModel.MODEL_TYPE_CATEGORY | model.getModelType() == IAbstractModel.MODEL_TYPE_PROJECT | model.getModelType() == IAbstractModel.MODEL_TYPE_DEPARTMENT | model.getModelType() == IAbstractModel.MODEL_TYPE_LOCATION) {
             vh.colorTag.setVisibility(View.VISIBLE);
             GradientDrawable bgShape = (GradientDrawable) vh.colorTag.getBackground();
-            bgShape.setColor(model.getColor());
+            if (model.getModelType() == IAbstractModel.MODEL_TYPE_LOCATION) {
+                if ((model.getLon() == 0) & (model.getLat() == 0)) {
+                    bgShape.setColor(Color.YELLOW);
+                } else {
+                    bgShape.setColor(Color.GREEN);
+                }
+            } else {
+                bgShape.setColor(model.getColor());
+            }
             p.setMargins(offset8, 0, 0, 0);
         } else {
             vh.colorTag.setVisibility(View.GONE);

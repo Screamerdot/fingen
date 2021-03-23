@@ -64,6 +64,12 @@ public class VhSmsMarker extends VhModelBase {
             case SmsParser.MARKER_TYPE_PAYEE:
                 mImageViewIcon.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_payes));
                 break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                mImageViewIcon.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_location));
+                break;
+            case SmsParser.MARKER_TYPE_BALANCE:
+                mImageViewIcon.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_balance_white));
+                break;
             case SmsParser.MARKER_TYPE_IGNORE:
                 mImageViewIcon.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_block_gray));
                 break;

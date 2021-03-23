@@ -58,6 +58,8 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
     ImageView imageViewAutoCreated;
     @BindView(R.id.imageViewHasLocation)
     ImageView imageViewHasLocation;
+    @BindView(R.id.imageViewHasDebt)
+    ImageView imageViewHasDebt;
     @BindView(R.id.imageViewHasQR)
     ImageView imageViewHasQR;
     @BindView(R.id.imageViewHasProducts)
@@ -112,7 +114,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         String text;
         Spannable spannable;
         String search = mParams.mSearchString.toLowerCase();
-        text = srcAccount.getName();
+        text = srcAccount.getName() + "(" + mParams.mDepartmentsDAO.getDepartmentByID(t.getDepartmentID()).getName() + ")";
         if (search.isEmpty() || !text.toLowerCase().contains(search)) {
             textViewAccount.setText(text);
         } else {
@@ -363,7 +365,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         mTagView.setTextPaddingRight(3);
         mTagView.setTextPaddingLeft(3);
         mTagView.setLineMargin(0f);
-        mTagView.setVisibility(category.getID() >= 0 | project.getID() >= 0 | department.getID() >= 0? View.VISIBLE : View.INVISIBLE);
+        mTagView.setVisibility(category.getID() >= 0 | project.getID() >= 0 /* | department.getID() >= 0*/ ? View.VISIBLE : View.INVISIBLE);
         Tag tag;
         int categoryColor;
         int projectColor;
@@ -383,9 +385,9 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         if (project.getID() >= 0) {
             mTagView.addTag(getTag(project.getFullName(), projectColor, 5f));
         }
-        if (department.getID() >= 0) {
+/*        if (department.getID() >= 0) {
             mTagView.addTag(getTag(department.getFullName(), departmentColor, 20f));
-        }
+        }*/
         if (mTagView.getVisibility() == View.INVISIBLE) {
             tag = new Tag(new SpannableString("T"));
             tag.tagTextSize = mParams.mTagTextSize;
@@ -419,6 +421,12 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         //</editor-fold>
 
         //<editor-fold desc="Icon indicators">
+        if (t.hasDebt()) {
+            imageViewHasDebt.setVisibility(View.VISIBLE);
+        } else {
+            imageViewHasDebt.setVisibility(View.GONE);
+        }
+
         if (t.hasLocation()) {
             imageViewHasLocation.setVisibility(View.VISIBLE);
         } else {
