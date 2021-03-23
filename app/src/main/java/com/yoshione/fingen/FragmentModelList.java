@@ -73,6 +73,10 @@ public class FragmentModelList extends Fragment {
     FloatingActionButton mButtonAddTrTypeMarker;
     @BindView(R.id.buttonAddPayeeMarker)
     FloatingActionButton mButtonAddPayeeMarker;
+    @BindView(R.id.buttonAddLocationMarker)
+    FloatingActionButton mButtonAddLocationMarker;
+    @BindView(R.id.buttonAddBalanceMarker)
+    FloatingActionButton mButtonAddBalanceMarker;
     @BindView(R.id.buttonAddIgnoreMarker)
     FloatingActionButton mButtonAddIgnoreMarker;
     @BindView(R.id.fabBGLayout)
@@ -85,6 +89,10 @@ public class FragmentModelList extends Fragment {
     LinearLayout mButtonAddTrTypeMarkerLayout;
     @BindView(R.id.buttonAddPayeeMarkerLayout)
     LinearLayout mButtonAddPayeeMarkerLayout;
+    @BindView(R.id.buttonAddBalanceMarkerLayout)
+    LinearLayout mButtonAddBalanceMarkerLayout;
+    @BindView(R.id.buttonAddLocationMarkerLayout)
+    LinearLayout mButtonAddLocationMarkerLayout;
     @BindView(R.id.buttonAddIgnoreMarkerLayout)
     LinearLayout mButtonAddIgnoreMarkerLayout;
     @BindView(R.id.fabMenuButtonRoot)
@@ -188,7 +196,7 @@ public class FragmentModelList extends Fragment {
 
     private void initFabMenu() {
         mFabMenuController = new FabMenuController(mFabMenuButtonRoot, mFabBGLayout, getActivity(),
-                mButtonAddIgnoreMarkerLayout, mButtonAddPayeeMarkerLayout, mButtonAddTrTypeMarkerLayout,
+                mButtonAddIgnoreMarkerLayout, mButtonAddPayeeMarkerLayout, mButtonAddBalanceMarkerLayout, mButtonAddLocationMarkerLayout, mButtonAddTrTypeMarkerLayout,
                 mButtonAddCabbageMarkerLayout, mButtonAddAccountMarkerLayout);
 
         FabMenuOnClickListener fabMenuOnClickListener = new FabMenuOnClickListener();
@@ -197,6 +205,8 @@ public class FragmentModelList extends Fragment {
         mButtonAddCabbageMarker.setOnClickListener(fabMenuOnClickListener);
         mButtonAddTrTypeMarker.setOnClickListener(fabMenuOnClickListener);
         mButtonAddPayeeMarker.setOnClickListener(fabMenuOnClickListener);
+        mButtonAddBalanceMarker.setOnClickListener(fabMenuOnClickListener);
+        mButtonAddLocationMarker.setOnClickListener(fabMenuOnClickListener);
         mButtonAddIgnoreMarker.setOnClickListener(fabMenuOnClickListener);
     }
 
@@ -216,6 +226,12 @@ public class FragmentModelList extends Fragment {
                     break;
                 case R.id.buttonAddPayeeMarker:
                     markerType = SmsParser.MARKER_TYPE_PAYEE;
+                    break;
+                case R.id.buttonAddBalanceMarker:
+                    markerType = SmsParser.MARKER_TYPE_BALANCE;
+                    break;
+                case R.id.buttonAddLocationMarker:
+                    markerType = SmsParser.MARKER_TYPE_LOCATION;
                     break;
                 case R.id.buttonAddIgnoreMarker:
                     markerType = SmsParser.MARKER_TYPE_IGNORE;

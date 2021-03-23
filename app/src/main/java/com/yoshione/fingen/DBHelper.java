@@ -40,6 +40,7 @@ import com.yoshione.fingen.dao.PayeesDAO;
 import com.yoshione.fingen.dao.ProductEntrysDAO;
 import com.yoshione.fingen.dao.ProductsDAO;
 import com.yoshione.fingen.dao.ProjectsDAO;
+import com.yoshione.fingen.dao.PushSendersDAO;
 import com.yoshione.fingen.dao.RunningBalanceDAO;
 import com.yoshione.fingen.dao.SendersDAO;
 import com.yoshione.fingen.dao.SimpleDebtsDAO;
@@ -54,6 +55,7 @@ import com.yoshione.fingen.model.BaseModel;
 import com.yoshione.fingen.model.Cabbage;
 import com.yoshione.fingen.utils.FileUtils;
 import com.yoshione.fingen.utils.Lg;
+import com.yoshione.fingen.utils.PrefUtils;
 import com.yoshione.fingen.utils.Translit;
 
 import java.io.BufferedReader;
@@ -82,7 +84,7 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
     private static final String DATABASE_ORIGIN_NAME = "origin_fingen.db";
     private static final int DATABASE_ORIGIN_VERSION = 35;
     private static final String DATABASE_NAME = "fingen.db";
-    public static final int DATABASE_VERSION = 37;
+    public static final int DATABASE_VERSION = 39;
     public static final String TAG = "DBHelper";
 
     private static String getFullNameColumn(String tableName) {
@@ -197,6 +199,9 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
         Log.d(TAG, SendersDAO.SQL_CREATE_TABLE);
         db.execSQL(SendersDAO.SQL_CREATE_TABLE);
 
+        Log.d(TAG, PushSendersDAO.SQL_CREATE_TABLE);
+        db.execSQL(PushSendersDAO.SQL_CREATE_TABLE);
+
         Log.d(TAG, AccountsSetsRefDAO.SQL_CREATE_TABLE);
         db.execSQL(AccountsSetsRefDAO.SQL_CREATE_TABLE);
 
@@ -228,12 +233,12 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
     public void onUpgrade(final SQLiteDatabase db, int oldVersion, int newVersion) {
         Lg.log(TAG, "Upgrade database " + String.valueOf(oldVersion) + " -> " + String.valueOf(newVersion));
 
-        //Сделали на всякий случай бэкап
-        try {
+        //Сделали на всякий случай бэкап **********  Отключил на всякий случай
+/*        try {
             backupDB(false);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         if (oldVersion < 17) { UpdateHelper.update17(db, mContext); }
         if (oldVersion < 18) { UpdateHelper.update18(db, mContext); }
         if (oldVersion < 19) { UpdateHelper.update19(db); }
@@ -261,6 +266,8 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
         if (oldVersion < 34) { UpdateHelper.update33(db); }
         if (oldVersion < 36) { UpdateHelper.update35(db); }
         if (oldVersion < 37) { UpdateHelper.update36(db); }
+        if (oldVersion < 38) { UpdateHelper.update37(db); }
+        if (oldVersion < 39) { UpdateHelper.update38(db); }
         if (oldVersion < 25) {
             try {
                 updateRunningBalance(db);
@@ -369,7 +376,7 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
         String[] tableNames = new String[]{AccountsDAO.TABLE, AccountsSetsRefDAO.TABLE, AccountsSetsLogDAO.TABLE,
                 CategoriesDAO.TABLE, PayeesDAO.TABLE, ProjectsDAO.TABLE, LocationsDAO.TABLE, DepartmentsDAO.TABLE,
                 SimpleDebtsDAO.TABLE, TransactionsDAO.TABLE, TemplatesDAO.TABLE, SmsDAO.TABLE, SmsMarkersDAO.TABLE,
-                CreditsDAO.TABLE, BudgetDAO.TABLE, BudgetCreditsDAO.TABLE, SendersDAO.TABLE, ProductsDAO.TABLE, ProductEntrysDAO.TABLE
+                CreditsDAO.TABLE, BudgetDAO.TABLE, BudgetCreditsDAO.TABLE, PushSendersDAO.TABLE, SendersDAO.TABLE, ProductsDAO.TABLE, ProductEntrysDAO.TABLE
         };
 
         for (String tableName : tableNames) {
@@ -429,7 +436,11 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
         if (useFullName) {
             fields = new String[]{BaseDAO.COL_ID, nameColumn, BaseDAO.COL_SEARCH_STRING, BaseDAO.COL_FULL_NAME};
         } else {
-            fields = new String[]{BaseDAO.COL_ID, nameColumn, BaseDAO.COL_SEARCH_STRING};
+            if (tableName.equals(TransactionsDAO.TABLE)) {
+                fields = new String[]{BaseDAO.COL_ID, nameColumn, BaseDAO.COL_SEARCH_STRING, TransactionsDAO.COL_FILE};
+            } else {
+                fields = new String[]{BaseDAO.COL_ID, nameColumn, BaseDAO.COL_SEARCH_STRING};
+            }
         }
         try (Cursor cursor = db.query(tableName, fields, BaseDAO.COL_SYNC_DELETED + " = 0", null, null, null, null)) {
             ContentValues cv = new ContentValues();
@@ -440,7 +451,11 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
                     if (useFullName) {
                         cv.put(BaseDAO.COL_FULL_NAME, cursor.getString(1));
                     }
-                    translit = Translit.toTranslit(cursor.getString(1).toLowerCase());
+                    if (tableName.equals(TransactionsDAO.TABLE)) {
+                        translit = Translit.toTranslit(cursor.getString(1).toLowerCase() + "; " + cursor.getString(3).toLowerCase());
+                    } else {
+                        translit = Translit.toTranslit(cursor.getString(1).toLowerCase());
+                    }
                     if (!cursor.getString(2).equals(translit)) {
                         cv.put(BaseDAO.COL_SEARCH_STRING, translit);
                     }
@@ -464,7 +479,7 @@ public class DBHelper extends SQLiteOpenHelper implements BaseColumns {
         }
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             String backupPath = FileUtils.getExtFingenBackupFolder();
-            @SuppressLint("SimpleDateFormat") String backupFile = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()) + ".zip";
+            @SuppressLint("SimpleDateFormat") String backupFile = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()) + "_" + PrefUtils.getDefaultDepartment(mContext).getName() + ".zip";
 
             if (!backupPath.isEmpty()) {
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);

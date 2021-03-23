@@ -18,6 +18,7 @@ import com.yoshione.fingen.model.MenuItem;
 import com.yoshione.fingen.model.Payee;
 import com.yoshione.fingen.model.Product;
 import com.yoshione.fingen.model.Project;
+import com.yoshione.fingen.model.PushSender;
 import com.yoshione.fingen.model.Sender;
 import com.yoshione.fingen.model.SmsMarker;
 import com.yoshione.fingen.utils.RequestCodes;
@@ -74,6 +75,16 @@ public class ActivityReferences extends ToolbarActivity {
                         ActivityReferences.this.startActivityForResult(intent[0], RequestCodes.REQUEST_CODE_VIEW_MODELS);
                     }
                 }, 2));
+/*        menuItemList.add(new MenuItem(getIcon(R.drawable.ic_push_gray),
+                getString(R.string.ent_push_senders),
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        intent[0] = new Intent(ActivityReferences.this, ActivityList.class);
+                        intent[0].putExtra("model", new PushSender());
+                        ActivityReferences.this.startActivityForResult(intent[0], RequestCodes.REQUEST_CODE_VIEW_MODELS);
+                    }
+                }, 3));*/
         menuItemList.add(new MenuItem(getIcon(R.drawable.ic_sender),
                 getString(R.string.ent_senders),
                 new View.OnClickListener() {

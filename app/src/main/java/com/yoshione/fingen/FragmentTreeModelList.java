@@ -37,6 +37,7 @@ import com.yoshione.fingen.interfaces.IUpdateTreeListsEvents;
 import com.yoshione.fingen.managers.AbstractModelManager;
 import com.yoshione.fingen.managers.CabbageManager;
 import com.yoshione.fingen.managers.FilterManager;
+import com.yoshione.fingen.managers.PushSenderManager;
 import com.yoshione.fingen.managers.SenderManager;
 import com.yoshione.fingen.managers.TreeManager;
 import com.yoshione.fingen.model.BaseModel;
@@ -46,6 +47,7 @@ import com.yoshione.fingen.model.Department;
 import com.yoshione.fingen.model.Events;
 import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.model.Project;
+import com.yoshione.fingen.model.PushSender;
 import com.yoshione.fingen.model.Sender;
 import com.yoshione.fingen.utils.BaseNode;
 import com.yoshione.fingen.utils.FabMenuController;
@@ -135,6 +137,7 @@ public class FragmentTreeModelList extends Fragment implements OnStartDragListen
         switch (mInputModel.getModelType()) {
             case IAbstractModel.MODEL_TYPE_CABBAGE:
             case IAbstractModel.MODEL_TYPE_SENDER:
+            case IAbstractModel.MODEL_TYPE_PUSH_SENDER:
                 mFabMenuButtonRoot.setOnClickListener(fabMenuItemClickListener);
                 break;
             default:
@@ -319,6 +322,9 @@ public class FragmentTreeModelList extends Fragment implements OnStartDragListen
                     case IAbstractModel.MODEL_TYPE_SENDER:
                         SenderManager.showEditDialog((Sender) model, Objects.requireNonNull(getActivity()).getSupportFragmentManager(), getActivity());
                         break;
+                    case IAbstractModel.MODEL_TYPE_PUSH_SENDER:
+                        PushSenderManager.showEditDialog((PushSender) model, Objects.requireNonNull(getActivity()).getSupportFragmentManager(), getActivity());
+                        break;
                 }
                 break;
             }
@@ -465,6 +471,7 @@ public class FragmentTreeModelList extends Fragment implements OnStartDragListen
             case IAbstractModel.MODEL_TYPE_LOCATION:
             case IAbstractModel.MODEL_TYPE_CABBAGE:
             case IAbstractModel.MODEL_TYPE_SENDER:
+            case IAbstractModel.MODEL_TYPE_PUSH_SENDER:
                 updateRecyclerView();
         }
     }
@@ -488,6 +495,9 @@ public class FragmentTreeModelList extends Fragment implements OnStartDragListen
                             break;
                         case IAbstractModel.MODEL_TYPE_SENDER:
                             SenderManager.showEditDialog(new Sender(), Objects.requireNonNull(getActivity()).getSupportFragmentManager(), getActivity());
+                            break;
+                        case IAbstractModel.MODEL_TYPE_PUSH_SENDER:
+                            PushSenderManager.showEditDialog(new PushSender(), Objects.requireNonNull(getActivity()).getSupportFragmentManager(), getActivity());
                             break;
                         case IAbstractModel.MODEL_TYPE_LOCATION:
                             Intent intent = new Intent(getActivity(), ActivityEditLocation2.class);

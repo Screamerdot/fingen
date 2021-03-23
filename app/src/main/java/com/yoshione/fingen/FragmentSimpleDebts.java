@@ -3,6 +3,7 @@ package com.yoshione.fingen;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Animatable;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.preference.PreferenceManager;
@@ -47,9 +49,13 @@ import com.yoshione.fingen.dao.TransactionsDAO;
 import com.yoshione.fingen.iab.BillingService;
 import com.yoshione.fingen.interfaces.IAbstractModel;
 import com.yoshione.fingen.interfaces.IBaseModelEventListener;
+import com.yoshione.fingen.managers.DebtsManager;
+import com.yoshione.fingen.managers.FilterManager;
+import com.yoshione.fingen.managers.SimpleDebtManager;
 import com.yoshione.fingen.managers.SumsManager;
 import com.yoshione.fingen.model.BaseModel;
 import com.yoshione.fingen.model.Cabbage;
+import com.yoshione.fingen.model.Credit;
 import com.yoshione.fingen.model.SimpleDebt;
 import com.yoshione.fingen.utils.FabMenuController;
 import com.yoshione.fingen.utils.RequestCodes;
@@ -295,7 +301,8 @@ public class FragmentSimpleDebts extends BaseListFragment
 
     @Override
     public void onItemClick(BaseModel item) {
-        Toast.makeText(getActivity(), "Not implemented yet", Toast.LENGTH_LONG).show();
+//        Toast.makeText(getActivity(), "Not implemented yet", Toast.LENGTH_LONG).show();
+
     }
 
     @SuppressLint("DefaultLocale")
@@ -385,7 +392,7 @@ public class FragmentSimpleDebts extends BaseListFragment
             MenuInflater menuInflater = activity.getMenuInflater();
             if (v.getId() == R.id.recycler_view) {
                 contextMenuTarget = CONTEXT_MENU_DEBTS;
-                menuInflater.inflate(R.menu.context_menu_simple_debts, menu);
+                menuInflater.inflate(R.menu.context_menu_models, menu);
             }
         }
     }
@@ -393,9 +400,56 @@ public class FragmentSimpleDebts extends BaseListFragment
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if (getUserVisibleHint()) {
-            switch (contextMenuTarget) {
-                case CONTEXT_MENU_DEBTS:
-                    initContextMenuDebts(item);
+            ContextMenuRecyclerView.RecyclerContextMenuInfo info = (ContextMenuRecyclerView.RecyclerContextMenuInfo) item.getMenuInfo();
+            switch (item.getItemId()) {
+                case R.id.action_edit: {
+                    AbstractDAO abstractDAO = BaseDAO.getDAO(IAbstractModel.MODEL_TYPE_SIMPLEDEBT, getActivity());
+                    if (abstractDAO != null) {
+                        IAbstractModel abstractModel = abstractDAO.getModelById(info.id);
+                        if (abstractModel != null) {
+                            SimpleDebtManager.showEditDialog((SimpleDebt) abstractModel, getActivity().getSupportFragmentManager(), getActivity());
+                        }
+                    }
+                    break;
+                }
+                case R.id.action_delete: {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setTitle(R.string.ttl_confirm_action);
+                    builder.setMessage(R.string.ttl_delete_debt_confirmation);
+
+                    // Set up the buttons
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                      @Override
+                      public void onClick(DialogInterface dialog, int which) {
+                          AbstractDAO abstractDAO = BaseDAO.getDAO(IAbstractModel.MODEL_TYPE_SIMPLEDEBT, getActivity());
+                          if (abstractDAO != null) {
+                              abstractDAO.deleteModel(abstractDAO.getModelById(info.id), true, getActivity());
+                          }
+                      }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
+                    break;
+                }
+                case R.id.action_show_transactions:
+                    AbstractDAO dao;
+                    IAbstractModel model;
+                    dao = BaseDAO.getDAO(IAbstractModel.MODEL_TYPE_SIMPLEDEBT, getActivity());
+                    if (dao != null) {
+                        model = dao.getModelById(info.id);
+                        Intent intent = new Intent(getActivity(), ActivityTransactions.class);
+                        intent.putParcelableArrayListExtra("filter_list", FilterManager.createFilterList(model.getModelType(), model.getID()));
+                        intent.putExtra("caption", model.getFullName());
+                        intent.putExtra(FgConst.HIDE_FAB, true);
+                        intent.putExtra(FgConst.LOCK_SLIDINGUP_PANEL, true);
+                        startActivity(intent);
+                    }
                     break;
             }
             return true;

@@ -69,6 +69,10 @@ public class ActivityList extends ToolbarActivity implements SearchView.OnQueryT
                     getSupportActionBar().setTitle(getResources().getString(R.string.ent_senders));
                     break;
                 }
+/*                case IAbstractModel.MODEL_TYPE_PUSH_SENDER: {
+                    getSupportActionBar().setTitle(getResources().getString(R.string.ent_push_senders));
+                    break;
+                }*/
             }
         }
 

@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -107,6 +109,7 @@ import com.yoshione.fingen.widgets.MyViewPager;
 import com.yoshione.fingen.widgets.SmsEditText;
 import com.yoshione.fingen.widgets.ToolbarActivity;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -670,8 +673,8 @@ public class ActivityEditTransaction extends ToolbarActivity implements
         if (sms != null) {
             SmsDAO smsDAO = SmsDAO.getInstance(getApplicationContext());
             smsDAO.deleteModel(sms, true, getApplicationContext());
-            if (transaction.getComment().isEmpty()) {
-                transaction.setComment(sms.getmBody());
+            if (transaction.getFile().isEmpty()) {
+                transaction.setFile(sms.getmBody());
             }
         }
     }
@@ -999,8 +1002,9 @@ public class ActivityEditTransaction extends ToolbarActivity implements
             Spannable text = new SpannableString(sms.getmBody());
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorAccount)), smsParser.mAccountBorders.first, smsParser.mAccountBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorAmount)), smsParser.mAmountBorders.first, smsParser.mAmountBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorAmount)), smsParser.mBalanceBorders.first, smsParser.mBalanceBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorBalance)), smsParser.mBalanceBorders.first, smsParser.mBalanceBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorPayee)), smsParser.mPayeeBorders.first, smsParser.mPayeeBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorLocation)), smsParser.mLocationBorders.first, smsParser.mLocationBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorDestAccount)), smsParser.mDestAccountBorders.first, smsParser.mDestAccountBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorType)), smsParser.mTrTypeBorders.first, smsParser.mTrTypeBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new BackgroundColorSpan(ContextCompat.getColor(this, R.color.ColorCabbage)), smsParser.mCabbageAmountBorders.first, smsParser.mCabbageAmountBorders.second, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -1012,7 +1016,12 @@ public class ActivityEditTransaction extends ToolbarActivity implements
 
             edSms.setCustomSelectionActionModeCallback(new ActionModeCallback(this));
         } else {
-            layoutSms.setVisibility(View.GONE);
+            if (!transaction.getFile().isEmpty()) {
+                layoutSms.setVisibility(View.VISIBLE);
+                edSms.setText(transaction.getFile());
+            } else {
+                layoutSms.setVisibility(View.GONE);
+            }
         }
 
     }
@@ -1109,6 +1118,40 @@ public class ActivityEditTransaction extends ToolbarActivity implements
                 smsMarker = new SmsMarker(-1, SmsParser.MARKER_TYPE_ACCOUNT, String.valueOf(transaction.getAccountID()), selectedText);
                 break;
             }
+//****************
+            case SmsParser.MARKER_TYPE_LOCATION: {
+                if (transaction.getLocationID() < 0) {
+                    if (lat == 0) {
+//                        new AlertDialog.Builder(this)
+//                                .setNegativeButton(R.string.act_create, (dialog, which) -> {
+                                    LocationsDAO locationsDAO = LocationsDAO.getInstance(ActivityEditTransaction.this);
+                                    Location location = new Location();
+                                    location.setName(selectedText);
+                                    try {
+                                        location = (Location) locationsDAO.createModel(location);
+                                        transaction.setLocationID(location.getID());
+                                        edLocation.setText(location.getName());
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    ActivityEditTransaction.this.createSmsMarker(markerType, selectedText);
+                                } /* )
+                                .setPositiveButton(R.string.act_select, (dialog, which) -> selectPayeeForMarker(markerType, selectedText))
+                                .setCancelable(false)
+                                .setMessage(String.format(getString(R.string.ttl_create_new_payee_from_marker), selectedText))
+                                .show();
+                    } */ else {
+                        selectPayeeForMarker(markerType, selectedText);
+                    }
+                    return;
+                }
+                if (transaction.getLocationID() >= 0) {
+                    smsMarker = new SmsMarker(-1, SmsParser.MARKER_TYPE_LOCATION, String.valueOf(transaction.getLocationID()), selectedText);
+                }
+                break;
+            }
+
+//********************
             case SmsParser.MARKER_TYPE_TRTYPE: {
                 int type;
                 if (viewPager.getCurrentItem() == 0) {
@@ -1937,6 +1980,7 @@ public class ActivityEditTransaction extends ToolbarActivity implements
             if (transaction.getLocationID() >= 0) {
                 edLocation.setText(LocationsDAO.getInstance(this).getLocationByID(transaction.getLocationID()).getFullName());
             } else {
+
                 if (transaction.getLat() != 0 & transaction.getLon() != 0) {
                     String latSymbol = transaction.getLat() > 0 ? "N" : "S";
                     String lonSymbol = transaction.getLon() > 0 ? "E" : "W";
@@ -1944,6 +1988,47 @@ public class ActivityEditTransaction extends ToolbarActivity implements
                     edLocation.setText(String.format("%s %s %s %s ±%sm",
                             latSymbol, df.format(transaction.getLat()), lonSymbol, df.format(transaction.getLon()), String.valueOf(transaction.getAccuracy())));
                 }
+
+                Geocoder geocoder = new Geocoder(this);
+                try {
+
+                    locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+                    android.location.Location lastloc = locationManager.getLastKnownLocation("passive");
+
+
+                    if (locationManager != null && locationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER))
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+                            lastloc = locationManager.getLastKnownLocation("network");
+                        }
+
+
+                    if (locationManager != null && locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                            lastloc = locationManager.getLastKnownLocation("gps");
+                        }
+
+//                    android.location.Location lastloc = locationManager.getLastKnownLocation("gps");
+                    if (lastloc != null) {
+                        lat = lastloc.getLatitude();
+                        lon = lastloc.getLongitude();
+                        List<Address> addresses = null;
+                        addresses = geocoder.getFromLocation(lat, lon, 1);
+                        if (addresses != null && addresses.size() > 0) {
+                            Address address = addresses.get(0);
+                            // Thoroughfare seems to be the street name without numbers
+                            String street = address.getThoroughfare();
+                            if (addresses.get(0).getLocality() != null) {
+                                String city = addresses.get(0).getLocality();
+                                edLocation.setText(city + "\\" + street);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             }
 
             edLocation.setOnClickListener(v -> {
@@ -2002,16 +2087,57 @@ public class ActivityEditTransaction extends ToolbarActivity implements
 
     private void updateEdLocation() {
         if (transaction.getLocationID() < 0 & forceUpdateLocation) {
-            String latSymbol = lat > 0 ? "N" : "S";
-            String lonSymbol = lon > 0 ? "E" : "W";
-            DecimalFormat df = new DecimalFormat("0.00000");
-            edLocation.setText(String.format("%s\n%s %s %s %s\n±%sm %s",
-                    getString(R.string.ent_current_location), latSymbol, df.format(lat), lonSymbol, df.format(lon),
-                    String.valueOf(accuracy), provider));
+            LocationsDAO locationsDAO = LocationsDAO.getInstance(this);
+            List<Location> locationsList = locationsDAO.getAllLocations();      //*************************************
+            Location loc = new Location();
+            int minDistance = 1000000;
+            for (int i = 0; i < locationsList.size();i++){
+                float[] results = new float[1];
+                android.location.Location.distanceBetween(lat, lon, locationsList.get(i).getLat(), locationsList.get(i).getLon(), results);
+                int distance = Math.round(results[0]);
+                if ((distance <= minDistance) & (distance < locationsList.get(i).getRadius()) & (locationsList.get(i).getID() >= 0)) {
+                    loc = locationsList.get(i);
+                    minDistance = distance;
+                    transaction.setLocationID(loc.getID());
+                    edLocation.setText(TransactionManager.getLocation(transaction, this).getFullName());
+                }
+
+            }
+
+            if (loc.getID() < 0) {
+                String latSymbol = lat > 0 ? "N" : "S";
+                String lonSymbol = lon > 0 ? "E" : "W";
+                DecimalFormat df = new DecimalFormat("0.00000");
+                edLocation.setText(String.format("%s\n%s %s %s %s\n±%sm %s",
+                        getString(R.string.ent_current_location), latSymbol, df.format(lat), lonSymbol, df.format(lon),
+                        String.valueOf(accuracy), provider));
+
+                Geocoder geocoder = new Geocoder(this);
+                try {
+/*                    android.location.Location lastloc = locationManager.getLastKnownLocation("gps");
+
+                    lat = lastloc.getLatitude();
+                    lon = lastloc.getLongitude();*/
+                    List<Address> addresses = null;
+                    addresses = geocoder.getFromLocation(lat, lon, 1);
+                    if (addresses != null && addresses.size() > 0 ){
+                        Address address = addresses.get(0);
+                        // Thoroughfare seems to be the street name without numbers
+                        String street = address.getThoroughfare();
+                        if (addresses.get(0).getLocality() != null) {
+                            String city = addresses.get(0).getLocality();
+                            edLocation.setText(city + "\\" + street);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
         } else {
             Location location = TransactionManager.getLocation(transaction, this);
             if (location.getID() > 0) {
-                edLocation.setText(location.getName());
+                edLocation.setText(location.getFullName());
             }
         }
     }

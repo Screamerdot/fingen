@@ -3,22 +3,28 @@ package com.yoshione.fingen;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
+import com.airbnb.android.airmapview.AirMapInterface;
 import com.airbnb.android.airmapview.AirMapMarker;
 import com.airbnb.android.airmapview.AirMapView;
+import com.airbnb.android.airmapview.AirMapViewTypes;
+import com.airbnb.android.airmapview.DefaultAirMapViewBuilder;
 import com.airbnb.android.airmapview.listeners.OnCameraChangeListener;
 import com.airbnb.android.airmapview.listeners.OnCameraMoveListener;
 import com.airbnb.android.airmapview.listeners.OnInfoWindowClickListener;
@@ -26,8 +32,11 @@ import com.airbnb.android.airmapview.listeners.OnLatLngScreenLocationCallback;
 import com.airbnb.android.airmapview.listeners.OnMapClickListener;
 import com.airbnb.android.airmapview.listeners.OnMapInitializedListener;
 import com.airbnb.android.airmapview.listeners.OnMapMarkerClickListener;
+import com.airbnb.android.airmapview.listeners.OnMapMarkerDragListener;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.yoshione.fingen.dao.LocationsDAO;
+import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.widgets.ToolbarActivity;
 
 import butterknife.BindView;
@@ -50,11 +59,15 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
         OnInfoWindowClickListener, OnLatLngScreenLocationCallback {
     @BindView(R.id.editTextName)
     EditText editTextName;
+    @BindView(R.id.seekBar)
+    SeekBar mSeekBar;
     @BindView(R.id.buttonSaveLocation)
     Button mButtonSaveLocation;
     @BindView(R.id.map)
     AirMapView map;
+    private DefaultAirMapViewBuilder mapViewBuilder;
     private com.yoshione.fingen.model.Location location;
+    private int mRadius;
 
     private double lat = 0;
     private double lon = 0;
@@ -135,6 +148,41 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
             }
         });
 
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+//                Toast.makeText(getApplicationContext(), String.valueOf(progress),Toast.LENGTH_LONG).show();
+                seekBar.setProgress(50, true);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
+                // TODO Auto-generated method stub
+                map.clearMarkers();
+                if (location != null && !location.isUndefined()) {
+                    LatLng latLng = new LatLng(location.getLat(), location.getLon());
+                    if (progress > 50)
+                        mRadius += progress - 50;
+                    else
+                        mRadius -= 50 - progress;
+                    if (mRadius < 0)
+                        mRadius = 0;
+                    addMarker(latLng);
+
+//                    map.drawCircle(latLng, mRadius, Color.RED, 3, Color.GREEN);
+                }
+
+            }
+        });
+
+        mapViewBuilder = new DefaultAirMapViewBuilder(this);
         map.setOnMapClickListener(this);
         map.setOnCameraChangeListener(this);
         map.setOnCameraMoveListener(this);
@@ -149,13 +197,27 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
                 if (location != null && !location.isUndefined()) {
                     LatLng latLng = new LatLng(location.getLat(), location.getLon());
                     map.clearMarkers();
+                    mRadius = location.getRadius();
                     addMarker(latLng);
                     map.setCenterZoom(latLng, 16);
                 }
 
             }
         });
-        map.initialize(getSupportFragmentManager());
+
+        AirMapInterface airMapInterface = null;
+        try {
+            airMapInterface = mapViewBuilder.builder(AirMapViewTypes.NATIVE).build();
+        } catch (UnsupportedOperationException e) {
+            airMapInterface = mapViewBuilder.builder(AirMapViewTypes.WEB).build();
+            Toast.makeText(this, "Sorry, native Google Maps are not supported by this device. " +
+                            "Please make sure you have Google Play Services installed.",
+                    Toast.LENGTH_SHORT).show();
+        }
+        if (airMapInterface != null) {
+            map.initialize(getSupportFragmentManager(), airMapInterface);
+        }
+//        map.initialize(getSupportFragmentManager());
     }
 
     @Override
@@ -185,6 +247,7 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
     @OnClick(R.id.buttonSaveLocation)
     public void onSaveClick() {
         if (location.getName().isEmpty()) return;
+        location.setRadius(mRadius);
         LocationsDAO locationsDAO = LocationsDAO.getInstance(getApplicationContext());
         try {
             locationsDAO.createModel(location);
@@ -223,7 +286,6 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
 
     @Override
     public void onInfoWindowClick(AirMapMarker<?> airMarker) {
-
     }
 
     @Override
@@ -245,8 +307,8 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
     }
 
     @Override
-    public void onMapMarkerClick(AirMapMarker<?> airMarker) {
-
+    public boolean onMapMarkerClick(AirMapMarker<?> airMarker) {
+        return false;
     }
 
     @Override
@@ -258,10 +320,16 @@ public class ActivityEditLocation2 extends ToolbarActivity implements OnCameraCh
         map.clearMarkers();
         location.setLat(latLng.latitude);
         location.setLon(latLng.longitude);
-        map.addMarker(new AirMapMarker.Builder()
+        String str = String.valueOf(mRadius);
+        AirMapMarker<?> airMarker = new AirMapMarker.Builder()
                 .position(latLng)
+                .title(location.getName())
+                .snippet(str + " m")
                 .iconId(R.mipmap.icon_location_pin)
-                .build());
+                .build();
+        map.addMarker(airMarker);
+        map.drawCircle(airMarker.getLatLng(), mRadius, Color.RED, 3, R.color.md_light_green_A100);
+        airMarker.getMarker().showInfoWindow();
     }
 
     @NeedsPermission({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})

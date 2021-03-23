@@ -3,7 +3,12 @@ package com.yoshione.fingen;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -35,7 +40,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,11 +76,12 @@ import com.yoshione.fingen.model.AccountsSet;
 import com.yoshione.fingen.model.BaseModel;
 import com.yoshione.fingen.model.Events;
 import com.yoshione.fingen.model.Sender;
-import com.yoshione.fingen.model.SimpleDebt;
+import com.yoshione.fingen.model.Sms;
 import com.yoshione.fingen.model.SmsMarker;
 import com.yoshione.fingen.model.Template;
 import com.yoshione.fingen.model.TrEditItem;
 import com.yoshione.fingen.model.Transaction;
+import com.yoshione.fingen.receivers.PushReceiver;
 import com.yoshione.fingen.receivers.SMSReceiver;
 import com.yoshione.fingen.utils.ColorUtils;
 import com.yoshione.fingen.utils.Lg;
@@ -82,6 +90,7 @@ import com.yoshione.fingen.utils.NotificationHelper;
 import com.yoshione.fingen.utils.PrefUtils;
 import com.yoshione.fingen.utils.RequestCodes;
 import com.yoshione.fingen.utils.ScreenUtils;
+import com.yoshione.fingen.utils.SmsParser;
 import com.yoshione.fingen.widgets.ToolbarActivity;
 
 import org.greenrobot.eventbus.EventBus;
@@ -91,6 +100,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -168,6 +178,8 @@ public class ActivityMain extends ToolbarActivity {
     private volatile boolean waitForQueue = false;
     UpdateUIHandler mUpdateUIHandler;
     private int mUnreadSms = 0;
+    private PushReceiver mReceiver;
+
 
     @Inject
     Lazy<BillingService> mBillingService;
@@ -280,14 +292,22 @@ public class ActivityMain extends ToolbarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        MenuItem menuItemInbox = menu.findItem(R.id.action_incoming);
-        Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_sms_white);
         int badgeColor = ContextCompat.getColor(this, R.color.negative_color);
         BadgeStyle badgeStyle = new BadgeStyle(BadgeStyle.Style.DEFAULT, com.mikepenz.actionitembadge.library.R.layout.menu_action_item_badge, badgeColor, badgeColor, -1);
         if (mUnreadSms > 0) {
+            ActionItemBadge.hide(menu.findItem(R.id.action_paste));
+            MenuItem menuItemInbox = menu.findItem(R.id.action_incoming);
+            Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_sms_white);
             ActionItemBadge.update(this, menuItemInbox, icon, badgeStyle, NumberUtils.formatNumber(mUnreadSms));
         } else {
             ActionItemBadge.hide(menu.findItem(R.id.action_incoming));
+//            MenuItem menuItemPaste = menu.findItem(R.id.action_paste);
+//            Drawable iconPaste = ContextCompat.getDrawable(this, R.drawable.ic_paste_white);
+//            ActionItemBadge.update(this, menuItemPaste, iconPaste, badgeStyle, NumberUtils.formatNumber(mUnreadSms));
+//            MenuItem menuItemPaste = menu.findItem(R.id.action_paste);
+//            Drawable iconPaste = ContextCompat.getDrawable(this, R.drawable.ic_paste_white);
+//            ActionMenuItem(this, menuItemPaste, iconPaste, badgeStyle);
+
         }
         return true;
     }
@@ -298,6 +318,72 @@ public class ActivityMain extends ToolbarActivity {
         if (id == R.id.action_incoming) {
             Intent intent = new Intent(ActivityMain.this, ActivitySmsList.class);
             ActivityMain.this.startActivity(intent);
+            return true;
+        }
+        if (id == R.id.action_paste) {
+//            ActivityMain Pst = new ActivityMain();
+//            Pst.this.pasteSms();
+//            ActivitySmsList SL = new ActivitySmsList();
+//            SL.pasteSms();
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (!clipboard.hasPrimaryClip()) return true;
+            ClipData data = clipboard.getPrimaryClip();
+            ClipData.Item itemClip = data.getItemAt(0);
+
+            final String text;
+            if (itemClip != null) {
+                try {
+                    text = itemClip.getText().toString();
+                } catch (Exception e) {
+                    Toast.makeText(this, getString(R.string.err_parse_clipboard), Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            } else {
+                text = "";
+            }
+
+            if (text.isEmpty()) return true;
+
+
+            AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
+            final ArrayAdapter<Sender> arrayAdapterCabbages = new ArrayAdapter<>(this, android.R.layout.select_dialog_singlechoice);
+            List<Sender> cabbages;
+            try {
+                cabbages = SendersDAO.getInstance(this).getAllSenders();
+            } catch (Exception e) {
+                cabbages = new ArrayList<>();
+            }
+            arrayAdapterCabbages.addAll(cabbages);
+
+            builderSingle.setSingleChoiceItems(arrayAdapterCabbages, -1,
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int which) {
+                            dialog.cancel();
+                            ListView lw = ((AlertDialog) dialog).getListView();
+                            Sender sender = (Sender) lw.getAdapter().getItem(which);
+                            Sms sms = new Sms(-1, new Date(), sender.getID(), text);
+                            SmsParser smsParser = new SmsParser(sms, getApplicationContext());
+                            Transaction transaction = smsParser.extractTransaction();
+
+                            Intent intent = new Intent(ActivityMain.this, ActivityEditTransaction.class);
+                            intent.putExtra("transaction", transaction);
+                            intent.putExtra("sms", sms);
+                            startActivityForResult(intent, RequestCodes.REQUEST_CODE_EDIT_TRANSACTION);
+                        }
+                    });
+            builderSingle.setTitle(getString(R.string.title_select_sender));
+
+            builderSingle.setNegativeButton(
+                    getResources().getString(android.R.string.cancel),
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            builderSingle.show();
+
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -478,6 +564,11 @@ public class ActivityMain extends ToolbarActivity {
         EventBus.getDefault().register(this);
 
         checkPermissionsAndShowAlert();
+
+        mReceiver = new PushReceiver();
+/*        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.yoshione.fingen.NOTIFICATION_LISTENER");
+        registerReceiver(mReceiver, filter);*/
 
         List<TrEditItem> tabs = PrefUtils.getTabsOrder(mPreferences, ActivityMain.this);
 
@@ -806,6 +897,33 @@ public class ActivityMain extends ToolbarActivity {
     }
     //</editor-fold>
 
+    //<editor-fold desc="Получаем права на чтение пушей" defaultstate="collapsed">
+    @NeedsPermission(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE)
+    void getReceivePushPermission() {
+        Log.d(TAG, "getReceivePushPermission");
+    }
+
+    @OnShowRationale(Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE)
+    void showRationaleForReceivePush(PermissionRequest request) {
+        showRationaleDialog(R.string.msg_permission_recieve_push_rationale, request);
+    }
+
+/*    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        ActivityMainPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    private void showRationaleDialog(@StringRes int messageResId, final PermissionRequest request) {
+        new AlertDialog.Builder(this)
+                .setPositiveButton(R.string.act_next, (dialog, which) -> request.proceed())
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> request.cancel())
+                .setCancelable(false)
+                .setMessage(messageResId)
+                .show();
+    }*/
+    //</editor-fold>
+
     private void checkPermissionsAndShowAlert() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
             List<SmsMarker> smsMarkers;
@@ -825,6 +943,7 @@ public class ActivityMain extends ToolbarActivity {
             }
         }
         ActivityMainPermissionsDispatcher.getExternalStoragepermissionWithPermissionCheck(this);
+        ActivityMainPermissionsDispatcher.getReceivePushPermissionWithPermissionCheck(this);
     }
 
     private void openReferences() {

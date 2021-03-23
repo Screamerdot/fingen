@@ -5,9 +5,11 @@ package com.yoshione.fingen;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +28,8 @@ import com.evernote.android.job.JobManager;
 import com.github.omadahealth.lollipin.lib.managers.LockManager;
 import com.yoshione.fingen.backup.BackupJob;
 import com.yoshione.fingen.backup.BackupJobCreator;
+import com.yoshione.fingen.backup.RestoreJob;
+import com.yoshione.fingen.backup.RestoreJobCreator;
 import com.yoshione.fingen.backup.BackupTestJobCreator;
 import com.yoshione.fingen.di.AppComponent;
 import com.yoshione.fingen.di.DaggerAppComponent;
@@ -87,7 +91,8 @@ public class FGApplication extends Application implements ISyncAnimMethods {
         mContext = this;
 
         JobManager.create(this).addJobCreator(new BackupJobCreator());
-        JobManager.create(this).addJobCreator(new BackupTestJobCreator());
+        JobManager.create(this).addJobCreator(new RestoreJobCreator());
+//        JobManager.create(this).addJobCreator(new BackupTestJobCreator());
 
         mUpdateUIHandler = new UpdateUIHandler(this);
 
@@ -107,7 +112,15 @@ public class FGApplication extends Application implements ISyncAnimMethods {
 
         mCustomIntentReceiver = new CustomIntentReceiver();
 
-        BackupJob.schedule();
+        Context context = FGApplication.getContext();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String currentString = prefs.getString("daily_sync_time", "01:00");
+        String[] separated = currentString.split(":");
+        Long l1 = Long.parseLong(separated[0]);
+        Long l2 = Long.parseLong(separated[1]);
+
+        BackupJob.schedule(l1, l2);
+        RestoreJob.schedule(l1, l2);
     }
 
     public static AppComponent getAppComponent() {

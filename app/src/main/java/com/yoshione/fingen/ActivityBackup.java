@@ -1,6 +1,7 @@
 package com.yoshione.fingen;
 
 import android.Manifest;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -42,6 +43,7 @@ import com.yoshione.fingen.dropbox.UserAccountTask;
 import com.yoshione.fingen.utils.DateTimeFormatter;
 import com.yoshione.fingen.utils.FabMenuController;
 import com.yoshione.fingen.utils.FileUtils;
+import com.yoshione.fingen.utils.SwipeDetector;
 import com.yoshione.fingen.widgets.ToolbarActivity;
 
 import java.io.File;
@@ -49,9 +51,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -92,6 +97,10 @@ public class ActivityBackup extends ToolbarActivity {
     TextView mTextViewLastBackupToDropbox;
     @BindView(R.id.buttonLogoutFromDropbox)
     Button mButtonLogoutFromDropbox;
+    @BindView(R.id.textEditSyncTime)
+    EditText mTextEditSyncTime;
+    @BindView(R.id.editTextDaysNumberSync)
+    EditText mEditTextDaysNumberSync;
     @BindView(R.id.fabBGLayout)
     View fabBGLayout;
     @BindView(R.id.fabBackupLayout)
@@ -113,6 +122,7 @@ public class ActivityBackup extends ToolbarActivity {
         ButterKnife.bind(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         initFabMenu();
+        initSync();
         initPasswordProtection();
         initDropbox();
         mHandler = new UpdateRwHandler(this);
@@ -191,6 +201,50 @@ public class ActivityBackup extends ToolbarActivity {
         });
         mFabMenuController.setViewVisibility(mFabRestoreFromDropboxLayout, token == null ? View.GONE : View.VISIBLE);
         initLastDropboxBackupField();
+    }
+
+    private void initSync() {
+        mTextEditSyncTime.setText(prefs.getString("daily_sync_time", "02:00"));
+        mEditTextDaysNumberSync.setText(prefs.getString("days_number_sync", "7"));
+        mEditTextDaysNumberSync.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String number = String.valueOf(charSequence);
+                prefs.edit().putString("days_number_sync", number).apply();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+    }
+
+    public void onTimeClick(View view) {
+        Calendar calendar = Calendar.getInstance();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(this);
+        calendar.setTime(dateTimeFormatter.parseTimeShortString(prefs.getString("daily_sync_time", "01:00")));
+        new TimePickerDialog(this,
+                (timePicker, hourOfDay, minute) -> {
+                    Calendar calendar1 = Calendar.getInstance();
+                    calendar1.setTime(dateTimeFormatter.parseTimeShortString(prefs.getString("daily_sync_time", "01:00")));
+                    calendar1.set(calendar1.get(Calendar.YEAR), calendar1.get(Calendar.MONTH), calendar1.get(Calendar.DAY_OF_MONTH), hourOfDay, minute);
+                    prefs.edit().putString("daily_sync_time", dateTimeFormatter.getTimeShortString(calendar1.getTime())).apply();
+                    initTimeButton();
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                DateTimeFormatter.is24(this)
+        ).show();
+    }
+
+    private void initTimeButton() {
+        mTextEditSyncTime.setText(prefs.getString("daily_sync_time", "01:00"));
     }
 
     private void initLastDropboxBackupField() {

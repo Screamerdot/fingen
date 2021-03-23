@@ -165,6 +165,22 @@ public class FragmentSmsMarkerEdit extends DialogFragment {
                     });
                 }
                 break;
+            case SmsParser.MARKER_TYPE_LOCATION:
+                mObject = SmsMarkerManager.getObject(smsMarker, getActivity());
+                if (mObject != null) {
+                    textViewObject.setText(mObject.toString());
+                    textViewObject.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(getActivity(), ActivityList.class);
+                            intent.putExtra("showHomeButton", false);
+                            intent.putExtra("model", mObject);
+                            intent.putExtra("requestCode", RequestCodes.REQUEST_CODE_SELECT_MODEL);
+                            startActivityForResult(intent, RequestCodes.REQUEST_CODE_SELECT_MODEL);
+                        }
+                    });
+                }
+                break;
             case SmsParser.MARKER_TYPE_TRTYPE:
                 text = SmsMarkerManager.getObjectAsText(smsMarker, getActivity());
                 textViewObject.setText(text);
@@ -207,13 +223,17 @@ public class FragmentSmsMarkerEdit extends DialogFragment {
                     }
                 });
                 break;
+            case SmsParser.MARKER_TYPE_BALANCE:
+                text = SmsMarkerManager.getObjectAsText(smsMarker, getActivity());
+                editTextObject.setText(text);
+                break;
             case SmsParser.MARKER_TYPE_IGNORE:
                 text = SmsMarkerManager.getObjectAsText(smsMarker, getActivity());
                 editTextObject.setText(text);
                 break;
         }
 
-        if (smsMarker.getType() == SmsParser.MARKER_TYPE_IGNORE) {
+        if ((smsMarker.getType() == SmsParser.MARKER_TYPE_IGNORE) || (smsMarker.getType() == SmsParser.MARKER_TYPE_BALANCE)) {
             mTextInputLayoutTextViewObject.setVisibility(View.GONE);
             mTextInputLayoutEditTextObject.setVisibility(View.GONE);
         } else {
@@ -231,6 +251,7 @@ public class FragmentSmsMarkerEdit extends DialogFragment {
                 case IAbstractModel.MODEL_TYPE_ACCOUNT:
                 case IAbstractModel.MODEL_TYPE_CABBAGE:
                 case IAbstractModel.MODEL_TYPE_PAYEE:
+                case IAbstractModel.MODEL_TYPE_LOCATION:
                     mObject = data.getParcelableExtra("model");
                     textViewObject.setText(mObject.toString());
                     break;
@@ -276,11 +297,13 @@ public class FragmentSmsMarkerEdit extends DialogFragment {
                         case SmsParser.MARKER_TYPE_DESTACCOUNT:
                         case SmsParser.MARKER_TYPE_CABBAGE:
                         case SmsParser.MARKER_TYPE_PAYEE:
+                        case SmsParser.MARKER_TYPE_LOCATION:
                             SmsMarkerManager.setObjctFromText(smsMarker, mObject.toString(), getActivity());
                             break;
                         case SmsParser.MARKER_TYPE_TRTYPE:
                             SmsMarkerManager.setObjctFromText(smsMarker, textViewObject.getText().toString(), getActivity());
                             break;
+                        case SmsParser.MARKER_TYPE_BALANCE:
                         case SmsParser.MARKER_TYPE_IGNORE:
                             SmsMarkerManager.setObjctFromText(smsMarker, editTextObject.getText().toString(), getActivity());
                             break;
