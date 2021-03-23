@@ -10,7 +10,9 @@ import com.yoshione.fingen.classes.TableInfo;
 import com.yoshione.fingen.dao.DepartmentsDAO;
 import com.yoshione.fingen.dao.ProductEntrysDAO;
 import com.yoshione.fingen.dao.ProductsDAO;
+import com.yoshione.fingen.dao.PushSendersDAO;
 import com.yoshione.fingen.dao.SendersDAO;
+import com.yoshione.fingen.dao.TransactionsDAO;
 import com.yoshione.fingen.managers.DepartmentManager;
 import com.yoshione.fingen.model.ProductEntry;
 import com.yoshione.fingen.utils.ColorUtils;
@@ -816,4 +818,14 @@ public class UpdateHelper {
         db.execSQL("ALTER TABLE " + ProductEntrysDAO.TABLE + " ADD COLUMN " + ProductEntrysDAO.COL_DEPARTMENT_ID + " INTEGER DEFAULT -1;");
     }
 
+    public static void update37(SQLiteDatabase db) {
+        //создаем таблицу отправителей пушей
+//        db.execSQL("CREATE TABLE ref_Push_Senders (_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Name TEXT UNIQUE NOT NULL, PackageName TEXT UNIQUE NOT NULL, isActive INTEGER NOT NULL);");
+        db.execSQL(PushSendersDAO.SQL_CREATE_TABLE);
+    }
+
+    public static void update38(SQLiteDatabase db) {
+        //Добавляем Комиссию банка
+        db.execSQL("ALTER TABLE " + TransactionsDAO.TABLE + " ADD COLUMN " + TransactionsDAO.COL_BANKFEE + " REAL DEFAULT 0;");
+    }
 }
