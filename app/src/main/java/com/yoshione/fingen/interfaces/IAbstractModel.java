@@ -35,10 +35,14 @@ public interface IAbstractModel extends Parcelable, Comparable<IAbstractModel> {
     int MODEL_TYPE_AMOUNT_FILTER    = 19;
     int MODEL_TYPE_PRODUCT          = 20;
     int MODEL_TYPE_PRODUCT_ENTRY    = 21;
+    int MODEL_TYPE_PUSH_SENDER      = 22;
     int MODEL_TYPE_DATE_RANGE       = 456;
 
     String toString();
     String getSearchString();
+
+    Double getLon();
+    Double getLat();
 
     long getID();
     void setID(long id);
