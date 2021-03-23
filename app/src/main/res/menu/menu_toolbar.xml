@@ -15,7 +15,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/action_change_theme"
-        android:icon="@drawable/ic_transfer"
-        android:title=""
+        android:icon="@drawable/ic_sync_blue"
+        android:title="Sync"
         app:showAsAction="always"/>
 </menu>

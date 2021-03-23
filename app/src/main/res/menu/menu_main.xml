@@ -6,4 +6,9 @@
         android:icon="@drawable/ic_sms_white"
         app:showAsAction="always"
         android:title="@string/ent_incoming"/>
+    <item
+        android:id="@+id/action_paste"
+        android:icon="@drawable/ic_paste_white"
+        app:showAsAction="always"
+        android:title="@string/act_paste"/>
 </menu>
