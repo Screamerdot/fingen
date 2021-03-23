@@ -115,6 +115,11 @@
             android:inputType="number"
             android:key="pin_lock_timeout"
             android:title="@string/pref_pin_lock_timeout"/>
+        <EditTextPreference
+            android:defaultValue="03:00"
+            android:singleLine="true"
+            android:inputType="text"
+            android:key="daily_sync_time"/>
     </PreferenceScreen>
 
     <PreferenceScreen
