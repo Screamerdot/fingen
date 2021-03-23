@@ -8,11 +8,13 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.yoshione.fingen.dao.AccountsDAO;
 import com.yoshione.fingen.dao.CabbagesDAO;
+import com.yoshione.fingen.dao.LocationsDAO;
 import com.yoshione.fingen.dao.PayeesDAO;
 import com.yoshione.fingen.dao.SendersDAO;
 import com.yoshione.fingen.dao.SmsMarkersDAO;
 import com.yoshione.fingen.model.Account;
 import com.yoshione.fingen.model.Cabbage;
+import com.yoshione.fingen.model.Location;
 import com.yoshione.fingen.model.Payee;
 import com.yoshione.fingen.model.Sender;
 import com.yoshione.fingen.model.Sms;
@@ -65,6 +67,7 @@ public class SmsParserTest {
         Account account = null;
         Account destAccount = null;
         Payee payee = null;
+        Location location = null;
         try {
             cabbage1 = (Cabbage) CabbagesDAO.getInstance(context).createModel(new Cabbage(-1, "CB1", "CB1", "Cabbage1", 2));
             cabbage2 = (Cabbage) CabbagesDAO.getInstance(context).createModel(new Cabbage(-1, "CB2", "CB2", "Cabbage2", 2));
@@ -73,6 +76,7 @@ public class SmsParserTest {
             destAccount = (Account) AccountsDAO.getInstance(context).createModel(new Account(-1, "AccountDest", cabbage1.getID(), "", "", BigDecimal.ZERO,
                     Account.AccountType.atCash, 0, false, true, BigDecimal.ZERO, BigDecimal.ZERO, 0, BigDecimal.ZERO));
             payee = (Payee) PayeesDAO.getInstance(context).createModel(new Payee(-1, "Payee", -1, -1, 0, false));
+            location = (Location) LocationsDAO.getInstance(context).createModel(new Location(-1, "Location", -1, -1, 0, false));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -154,6 +158,13 @@ public class SmsParserTest {
                             break;
                     }
                 }
+                //тест извлечения локации
+                if (!smsTest.mLocationMarker.isEmpty()) {
+                    Log.d(TAG, String.format("Payee %s with marker %s extracted (id = %d)", location.getName(), smsTest.mLocationMarker, location.getID()));
+                    assertThat(smsParser.extractLocation().getID(), is(location.getID()));
+
+                    }
+                }
 
                 //тест извлечения суммы
                 Log.d(TAG, String.format("Amount %s with currency %s extracted", new CabbageFormatter(cabbage1).format(smsTest.mAmount), cabbage1.getCode()));
@@ -205,6 +216,7 @@ public class SmsParserTest {
                 smsTest.mDestAccount = vls.get(9).replaceAll("\"","").trim();
                 smsTest.mAmountPos = Integer.valueOf(vls.get(10).replaceAll("\"","").trim());
                 smsTest.mBalancePos = Integer.valueOf(vls.get(11).replaceAll("\"","").trim());
+                smsTest.mLocationMarker = vls.get(12).replaceAll("\"","").trim();
                 smsTests.add(smsTest);
             }
         });
@@ -213,6 +225,7 @@ public class SmsParserTest {
     private class SmsTest {
         String mText;
         String mAccountMarker;
+        String mLocationMarker;
         String mTypeMarker;
         int mType;
         BigDecimal mAmount;
