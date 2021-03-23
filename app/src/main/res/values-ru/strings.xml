@@ -878,6 +878,10 @@
     <string name="ent_skip" formatted="false">Игнор.</string>
 
     <!-- 10. SMS Markers -->
+    <!-- Entities -->
+    <string name="ent_balance" formatted="false">Баланс</string>
+
+    <!-- 10. SMS Markers -->
     <!-- Actions -->
     <string name="act_set_marker" formatted="false">Установить маркер</string>
 
@@ -1256,6 +1260,14 @@
     <!-- 16. Backup & Restore -->
     <!-- Titles -->
     <string name="ttl_auto_backup_info" formatted="false">Резервные копии создаются автоматически и сохраняются на карте памяти в папке Fingen/\Backup</string>
+
+    <!-- 16. Backup & Restore -->
+    <!-- Titles -->
+    <string name="ttl_sync_info" formatted="false">Задайте время старта ежедневной синхронизации:</string>
+
+    <!-- 16. Backup & Restore -->
+    <!-- Titles -->
+    <string name="ttl_sync_days_info" formatted="false">Задайте количество дней, охватываемых синхронизацией:</string>
 
     <!-- 16. Backup & Restore -->
     <!-- Messages -->
@@ -1841,13 +1853,30 @@
     <!-- Messages -->
     <string name="msg_thanks_for_purchase_reports" formatted="false">Спасибо за покупку! Для построения графических отчетов перейдите на вкладку "Транзакции", потяните вверх нижнюю панель и нажмите на кнопку построения графиков. Отчеты строятся по отображенным в списке транзакциям, с учетом всех фильтров.</string>
 
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_push_sender" formatted="false">Отправитель пуша</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_push_senders" formatted="false">Отправители пуша</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_new_push_sender" formatted="false">Новый отправитель пуша</string>
+
+    <!-- 24. Push Senders -->
+    <!-- Entities -->
+    <string name="ent_edit_push_sender" formatted="false">Редактировать отправителя пуша</string>
+
+
     <!-- 24. Senders -->
     <!-- Entities -->
     <string name="ent_sender" formatted="false">Отправитель смс</string>
 
     <!-- 24. Senders -->
     <!-- Entities -->
-    <string name="ent_senders" formatted="false">Отправители смс</string>
+    <string name="ent_senders" formatted="false">Отправители смс/пуш сообщений</string>
 
     <!-- 24. Senders -->
     <!-- Entities -->
